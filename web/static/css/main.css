@@ -423,6 +423,26 @@ a:hover { text-decoration: underline; }
   margin-top: -0.2rem;
 }
 
+.card-impl {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.card-impl-label {
+  font-size: 0.66rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.card-impl-value {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
 .card-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
