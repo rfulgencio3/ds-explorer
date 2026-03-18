@@ -97,6 +97,8 @@ func main() {
 	mux.HandleFunc("GET /{$}", handleHome)
 	mux.HandleFunc("GET /structure/{id}", handleStructure)
 	mux.HandleFunc("GET /compare", handleCompare)
+	mux.HandleFunc("GET /big-o", handleBigO)
+	mux.HandleFunc("GET /memory-hierarchy", handleMemoryHierarchy)
 	mux.HandleFunc("GET /references", handleReferences)
 
 	// API
@@ -120,7 +122,7 @@ func serverAddr() string {
 }
 
 func loadTemplates() (map[string]*template.Template, error) {
-	pages := []string{"home.html", "structure.html", "compare.html", "references.html"}
+	pages := []string{"home.html", "structure.html", "compare.html", "references.html", "big_o.html", "memory_hierarchy.html"}
 	loaded := make(map[string]*template.Template, len(pages))
 
 	for _, page := range pages {
@@ -269,6 +271,14 @@ func handleStructure(w http.ResponseWriter, r *http.Request) {
 
 func handleCompare(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, "compare.html", nil)
+}
+
+func handleBigO(w http.ResponseWriter, r *http.Request) {
+	renderPage(w, "big_o.html", nil)
+}
+
+func handleMemoryHierarchy(w http.ResponseWriter, r *http.Request) {
+	renderPage(w, "memory_hierarchy.html", nil)
 }
 
 func handleReferences(w http.ResponseWriter, r *http.Request) {

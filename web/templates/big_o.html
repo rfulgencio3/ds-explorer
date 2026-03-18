@@ -1,0 +1,311 @@
+{{template "base" .}}
+
+{{define "title"}}ds-explorer — Guia de Notacao Assintotica{{end}}
+
+{{define "content"}}
+<section class="guide-hero">
+  <p class="guide-kicker">// Complexidade assintotica</p>
+  <h1 class="guide-title">Big-O, seus tipos e como as curvas crescem</h1>
+  <p class="guide-subtitle">
+    Uma leitura curta sobre a origem da notacao, a diferenca entre limites assintoticos
+    e o comportamento pratico das classes de crescimento mais comuns em algoritmos.
+  </p>
+</section>
+
+<section class="guide-section">
+  <div class="guide-grid guide-grid--two">
+    <article class="guide-card">
+      <p class="guide-card-kicker">Historia</p>
+      <h2 class="guide-card-title">De Landau para analise de algoritmos</h2>
+      <div class="guide-copy">
+        <p>
+          A familia de simbolos <code>O</code>, <code>Ω</code>, <code>Θ</code>, <code>o</code> e <code>ω</code>
+          vem da notacao de Landau, criada no contexto da analise matematica para comparar taxas de crescimento.
+        </p>
+        <p>
+          Na computacao, a notacao ganhou papel central quando passou a ser usada para descrever
+          custo de tempo e espaco em funcao do tamanho da entrada, isolando a forma de crescimento
+          em vez de detalhes de maquina.
+        </p>
+        <p>
+          Donald Knuth ajudou a consolidar e padronizar esse vocabulário na analise de algoritmos,
+          especialmente ao discutir as diferencas entre limite superior, inferior e limite apertado.
+        </p>
+      </div>
+    </article>
+
+    <article class="guide-card">
+      <p class="guide-card-kicker">Leitura correta</p>
+      <h2 class="guide-card-title">O que a notacao quer capturar</h2>
+      <div class="guide-copy">
+        <p>
+          O objetivo principal nao e prever o tempo exato de execucao, e sim descrever
+          como o custo cresce quando <code>n</code> aumenta.
+        </p>
+        <p>
+          Isso permite comparar algoritmos de forma mais estavel, mesmo quando linguagem,
+          processador ou detalhes de implementacao mudam.
+        </p>
+        <p>
+          Em termos práticos: uma curva melhor costuma escalar melhor. Mas constantes,
+          localidade de memoria e layout dos dados ainda importam muito em entradas reais.
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Tipos</p>
+    <h2 class="guide-section-title">Os simbolos mais usados</h2>
+  </div>
+
+  <div class="notation-grid">
+    <article class="notation-card">
+      <h3>Big-O <code>O(f(n))</code></h3>
+      <p>Limite superior assintotico. Diz que o algoritmo nao cresce mais rapido do que certa funcao, ignorando constantes.</p>
+      <p class="notation-note">Leitura prática: pior crescimento esperado dentro de uma ordem de grandeza.</p>
+    </article>
+    <article class="notation-card">
+      <h3>Big-Omega <code>Ω(f(n))</code></h3>
+      <p>Limite inferior assintotico. Indica que a funcao cresce pelo menos naquela ordem.</p>
+      <p class="notation-note">Leitura prática: o algoritmo nao consegue crescer menos do que essa classe.</p>
+    </article>
+    <article class="notation-card">
+      <h3>Big-Theta <code>Θ(f(n))</code></h3>
+      <p>Limite apertado. A funcao cresce na mesma ordem superior e inferior ao mesmo tempo.</p>
+      <p class="notation-note">Leitura prática: descreve a classe de crescimento mais precisa entre as tres grandes.</p>
+    </article>
+    <article class="notation-card">
+      <h3>little-o <code>o(f(n))</code></h3>
+      <p>Limite superior estrito. Cresce estritamente mais devagar do que <code>f(n)</code>.</p>
+      <p class="notation-note">Leitura prática: e mais forte que Big-O, porque exclui crescimento na mesma ordem.</p>
+    </article>
+    <article class="notation-card">
+      <h3>little-omega <code>ω(f(n))</code></h3>
+      <p>Limite inferior estrito. Cresce estritamente mais rapido do que <code>f(n)</code>.</p>
+      <p class="notation-note">Leitura prática: e mais forte que Big-Omega, porque exclui a mesma ordem.</p>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Curvas</p>
+    <h2 class="guide-section-title">Grafico de crescimento assintotico</h2>
+    <p class="guide-section-copy">
+      O grafico abaixo usa uma escala normalizada para comparar o formato das curvas mais comuns.
+      Ele nao representa tempo absoluto, e sim a tendencia de crescimento conforme <code>n</code> aumenta.
+    </p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-legend">
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--o1"></span>O(1)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--ologn"></span>O(log n)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--on"></span>O(n)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--onlogn"></span>O(n log n)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--on2"></span>O(n²)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--o2n"></span>O(2ⁿ)</span>
+      <span class="chart-legend-item"><span class="chart-swatch chart-swatch--onf"></span>O(n!)</span>
+    </div>
+    <svg class="growth-chart" id="growth-chart" viewBox="0 0 900 420" role="img" aria-label="Grafico comparando curvas de crescimento assintotico"></svg>
+    <p class="chart-note">Para manter o grafico legivel, curvas explosivas como <code>O(2ⁿ)</code> e <code>O(n!)</code> sao comprimidas verticalmente na normalizacao.</p>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Classes comuns</p>
+    <h2 class="guide-section-title">Como cada classe costuma se comportar</h2>
+  </div>
+
+  <div class="growth-grid">
+    <article class="growth-card">
+      <h3><code>O(1)</code></h3>
+      <p>Crescimento constante. A operacao praticamente nao se altera quando a entrada aumenta.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(log n)</code></h3>
+      <p>Cresce devagar. Estruturas balanceadas e busca binaria costumam cair aqui.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(n)</code></h3>
+      <p>Crescimento linear. Dobrar a entrada tende a dobrar o trabalho.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(n log n)</code></h3>
+      <p>Quase linear. Costuma aparecer em algoritmos eficientes de ordenacao geral.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(n²)</code></h3>
+      <p>Quadratico. Comparacoes par a par e loops aninhados fazem essa classe crescer rapido.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(2ⁿ)</code></h3>
+      <p>Exponencial. Fica inviavel cedo quando o tamanho de entrada aumenta.</p>
+    </article>
+    <article class="growth-card">
+      <h3><code>O(n!)</code></h3>
+      <p>Fatorial. Explosao combinatoria severa; aparece em busca exaustiva de permutacoes.</p>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Fontes</p>
+    <h2 class="guide-section-title">Referencias tecnicas</h2>
+  </div>
+
+  <div class="source-list">
+    <a href="https://mathworld.wolfram.com/LandauSymbols.html" class="source-link" target="_blank" rel="noopener noreferrer">Wolfram MathWorld — Landau Symbols</a>
+    <a href="https://mathworld.wolfram.com/Big-ONotation.html" class="source-link" target="_blank" rel="noopener noreferrer">Wolfram MathWorld — Big-O Notation</a>
+    <a href="https://mathworld.wolfram.com/Little-ONotation.html" class="source-link" target="_blank" rel="noopener noreferrer">Wolfram MathWorld — Little-O Notation</a>
+    <a href="https://dblp.org/rec/journals/sigact/Knuth76.html" class="source-link" target="_blank" rel="noopener noreferrer">DBLP / DOI — Knuth, Big Omicron and Big Omega and Big Theta (1976)</a>
+    <a href="https://profiles.stanford.edu/donald-knuth" class="source-link" target="_blank" rel="noopener noreferrer">Stanford Profile — Donald Knuth</a>
+  </div>
+</section>
+
+<script>
+(() => {
+  const svg = document.getElementById('growth-chart');
+  if (!svg) return;
+
+  const width = 900;
+  const height = 420;
+  const padding = { top: 24, right: 22, bottom: 42, left: 56 };
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  const xValues = Array.from({ length: 10 }, (_, i) => i + 1);
+  const factorial = (n) => {
+    let result = 1;
+    for (let i = 2; i <= n; i += 1) result *= i;
+    return result;
+  };
+
+  const series = [
+    { name: 'O(1)', color: '#6ee7a8', values: xValues.map(() => 1) },
+    { name: 'O(log n)', color: '#8bd3ff', values: xValues.map((n) => Math.log2(n)) },
+    { name: 'O(n)', color: '#b9f27c', values: xValues.map((n) => n) },
+    { name: 'O(n log n)', color: '#f0d37a', values: xValues.map((n) => n * Math.log2(n)) },
+    { name: 'O(n²)', color: '#ffb36b', values: xValues.map((n) => n * n) },
+    { name: 'O(2ⁿ)', color: '#ff8d8d', values: xValues.map((n) => 2 ** n) },
+    { name: 'O(n!)', color: '#ff5f8f', values: xValues.map((n) => factorial(n)) },
+  ];
+
+  const globalMax = Math.max(...series.flatMap((item) => item.values));
+  const normalized = series.map((item) => ({
+    ...item,
+    values: item.values.map((value) => Math.log10(value + 1) / Math.log10(globalMax + 1)),
+  }));
+
+  const toX = (index) => padding.left + (index / (xValues.length - 1)) * plotW;
+  const toY = (value) => padding.top + (1 - value) * plotH;
+
+  const el = (name, attrs = {}) => {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', name);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    return node;
+  };
+
+  svg.appendChild(el('rect', {
+    x: String(padding.left),
+    y: String(padding.top),
+    width: String(plotW),
+    height: String(plotH),
+    rx: '10',
+    fill: 'rgba(13, 17, 23, 0.86)',
+    stroke: 'rgba(30, 45, 61, 1)',
+  }));
+
+  for (let i = 0; i <= 4; i += 1) {
+    const y = padding.top + (plotH / 4) * i;
+    svg.appendChild(el('line', {
+      x1: String(padding.left),
+      y1: String(y),
+      x2: String(width - padding.right),
+      y2: String(y),
+      stroke: 'rgba(116, 144, 168, 0.18)',
+      'stroke-width': '1',
+    }));
+  }
+
+  xValues.forEach((value, index) => {
+    const x = toX(index);
+    svg.appendChild(el('line', {
+      x1: String(x),
+      y1: String(padding.top),
+      x2: String(x),
+      y2: String(height - padding.bottom),
+      stroke: 'rgba(116, 144, 168, 0.12)',
+      'stroke-width': '1',
+    }));
+
+    const label = el('text', {
+      x: String(x),
+      y: String(height - 16),
+      fill: '#7490a8',
+      'font-size': '12',
+      'text-anchor': 'middle',
+    });
+    label.textContent = String(value);
+    svg.appendChild(label);
+  });
+
+  const axisX = el('line', {
+    x1: String(padding.left),
+    y1: String(height - padding.bottom),
+    x2: String(width - padding.right),
+    y2: String(height - padding.bottom),
+    stroke: '#8892a4',
+    'stroke-width': '1.5',
+  });
+  const axisY = el('line', {
+    x1: String(padding.left),
+    y1: String(padding.top),
+    x2: String(padding.left),
+    y2: String(height - padding.bottom),
+    stroke: '#8892a4',
+    'stroke-width': '1.5',
+  });
+  svg.appendChild(axisX);
+  svg.appendChild(axisY);
+
+  const yLabel = el('text', {
+    x: '18',
+    y: String(padding.top + plotH / 2),
+    fill: '#7490a8',
+    'font-size': '12',
+    transform: `rotate(-90 18 ${padding.top + plotH / 2})`,
+    'text-anchor': 'middle',
+  });
+  yLabel.textContent = 'crescimento normalizado';
+  svg.appendChild(yLabel);
+
+  const xLabel = el('text', {
+    x: String(padding.left + plotW / 2),
+    y: String(height - 4),
+    fill: '#7490a8',
+    'font-size': '12',
+    'text-anchor': 'middle',
+  });
+  xLabel.textContent = 'tamanho da entrada (n)';
+  svg.appendChild(xLabel);
+
+  normalized.forEach((item) => {
+    const points = item.values.map((value, index) => `${toX(index)},${toY(value)}`).join(' ');
+    svg.appendChild(el('polyline', {
+      points,
+      fill: 'none',
+      stroke: item.color,
+      'stroke-width': '3',
+      'stroke-linejoin': 'round',
+      'stroke-linecap': 'round',
+    }));
+  });
+})();
+</script>
+{{end}}

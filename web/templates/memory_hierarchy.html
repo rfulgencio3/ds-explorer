@@ -1,0 +1,201 @@
+{{template "base" .}}
+
+{{define "title"}}ds-explorer — Hierarquia de Memoria e Estruturas{{end}}
+
+{{define "content"}}
+<section class="guide-hero">
+  <p class="guide-kicker">// Representacao interna e custo real</p>
+  <h1 class="guide-title">Como a memoria influencia o comportamento das estruturas</h1>
+  <p class="guide-subtitle">
+    Uma ponte entre a enfase de Donald Knuth em representacao interna e a hierarquia moderna
+    de memoria: L1, L2, L3 e RAM. A ideia central e simples: a mesma complexidade assintotica
+    pode ter comportamento muito diferente dependendo de localidade e layout.
+  </p>
+</section>
+
+<section class="guide-section">
+  <div class="guide-grid guide-grid--two">
+    <article class="guide-card">
+      <p class="guide-card-kicker">Base conceitual</p>
+      <h2 class="guide-card-title">A perspectiva de Knuth</h2>
+      <div class="guide-copy">
+        <p>
+          Em <em>The Art of Computer Programming</em>, a analise nao para na abstracao da estrutura:
+          ela observa como os dados sao representados, como sao ligados e como isso afeta custo.
+        </p>
+        <p>
+          A pagina aqui estende essa lente para hardware moderno. A nomenclatura
+          <code>L1</code>, <code>L2</code>, <code>L3</code> e <code>RAM</code> e mais recente,
+          mas a preocupacao com localidade, acesso sequencial e saltos de ponteiro conversa diretamente
+          com a forma de pensar do livro.
+        </p>
+      </div>
+    </article>
+
+    <article class="guide-card guide-card--emphasis">
+      <p class="guide-card-kicker">Regra pratica</p>
+      <h2 class="guide-card-title">Contiguo tende a favorecer cache</h2>
+      <div class="guide-copy">
+        <p>
+          Estruturas que guardam elementos lado a lado em memoria costumam aproveitar melhor prefetch,
+          cache lines e acesso sequencial.
+        </p>
+        <p>
+          Estruturas baseadas em nos espalhados pela heap costumam sofrer mais com misses de cache,
+          especialmente quando a travessia depende de perseguir ponteiros.
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Hierarquia</p>
+    <h2 class="guide-section-title">L1, L2, L3 e RAM</h2>
+    <p class="guide-section-copy">
+      Os niveis abaixo estao em ordem do mais proximo ao core para o mais distante.
+      Os tamanhos e latencias exatos variam por arquitetura; o objetivo aqui e mostrar a relacao relativa.
+    </p>
+  </div>
+
+  <div class="memory-ladder">
+    <article class="memory-tier memory-tier--l1">
+      <div class="memory-tier-head">
+        <h3>L1 Cache</h3>
+        <span>menor e mais rapido</span>
+      </div>
+      <p>Primeiro nivel de cache do core. Ideal para dados quentes e loops apertados.</p>
+      <ul class="memory-tier-points">
+        <li>latencia muito baixa</li>
+        <li>capacidade pequena</li>
+        <li>beneficia acesso contiguo e repetido</li>
+      </ul>
+    </article>
+    <article class="memory-tier memory-tier--l2">
+      <div class="memory-tier-head">
+        <h3>L2 Cache</h3>
+        <span>intermediario rapido</span>
+      </div>
+      <p>Segundo nivel, ainda muito rapido, mas menos agressivo que L1.</p>
+      <ul class="memory-tier-points">
+        <li>maior que L1</li>
+        <li>mais lento que L1</li>
+        <li>amortece misses antes de chegar aos niveis mais caros</li>
+      </ul>
+    </article>
+    <article class="memory-tier memory-tier--l3">
+      <div class="memory-tier-head">
+        <h3>L3 Cache</h3>
+        <span>maior e compartilhado</span>
+      </div>
+      <p>Ultimo nivel de cache antes da memoria principal. Costuma ser compartilhado entre nucleos.</p>
+      <ul class="memory-tier-points">
+        <li>capacidade bem maior</li>
+        <li>latencia perceptivelmente superior a L1 e L2</li>
+        <li>ainda muito melhor que buscar direto na RAM</li>
+      </ul>
+    </article>
+    <article class="memory-tier memory-tier--ram">
+      <div class="memory-tier-head">
+        <h3>RAM</h3>
+        <span>maior e mais lenta</span>
+      </div>
+      <p>Memoria principal. Quando a busca chega aqui, o custo do acesso cresce bastante.</p>
+      <ul class="memory-tier-points">
+        <li>capacidade muito maior</li>
+        <li>latencia muito acima dos caches</li>
+        <li>misses frequentes aqui derrubam throughput</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Localidade</p>
+    <h2 class="guide-section-title">Por que algumas estruturas se saem melhor no cache</h2>
+  </div>
+
+  <div class="storage-grid">
+    <article class="storage-card">
+      <h3>Array e vetores contiguos</h3>
+      <p>Elementos vizinhos ficam proximos em memoria, o que ajuda prefetch e acesso sequencial.</p>
+      <p class="storage-rating storage-rating--good">Tendencia: localidade espacial forte</p>
+    </article>
+    <article class="storage-card">
+      <h3>Lista encadeada</h3>
+      <p>Os nos podem estar espalhados pela heap, e cada salto depende de ponteiros.</p>
+      <p class="storage-rating storage-rating--warning">Tendencia: mais misses e travessia menos amigavel ao cache</p>
+    </article>
+    <article class="storage-card">
+      <h3>Fila ou pilha em array</h3>
+      <p>Quando implementadas de forma contigua, herdam boa parte das vantagens de localidade do array.</p>
+      <p class="storage-rating storage-rating--good">Tendencia: boa localidade nos extremos ativos</p>
+    </article>
+    <article class="storage-card">
+      <h3>Arvores e tries</h3>
+      <p>Navegacao por ponteiros pode saltar entre regioes distantes de memoria, sobretudo em heaps fragmentadas.</p>
+      <p class="storage-rating storage-rating--warning">Tendencia: custo real sensivel ao layout dos nos</p>
+    </article>
+    <article class="storage-card">
+      <h3>Tabelas hash</h3>
+      <p>Podem ser excelentes em complexidade media, mas o comportamento real depende do espalhamento das chaves, colisao e resize.</p>
+      <p class="storage-rating storage-rating--mixed">Tendencia: muito boa ou mediana, conforme o layout interno</p>
+    </article>
+    <article class="storage-card">
+      <h3>Grafos</h3>
+      <p>Em listas de adjacencia com ponteiros, a travessia pode perder localidade rapidamente. Layouts compactados melhoram isso.</p>
+      <p class="storage-rating storage-rating--mixed">Tendencia: varia bastante com a representacao</p>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Leituras praticas</p>
+    <h2 class="guide-section-title">O que isso muda no dia a dia</h2>
+  </div>
+
+  <div class="guide-grid guide-grid--three">
+    <article class="guide-card">
+      <h3 class="mini-title">Mesmo Big-O, desempenho diferente</h3>
+      <p class="guide-copy">Dois percursos <code>O(n)</code> podem ter tempos bem diferentes se um caminha por memoria contigua e o outro salta por ponteiros.</p>
+    </article>
+    <article class="guide-card">
+      <h3 class="mini-title">Layout importa</h3>
+      <p class="guide-copy">O formato da estrutura nao basta; a representacao concreta afeta cache lines, misses, prefetch e fragmentacao.</p>
+    </article>
+    <article class="guide-card">
+      <h3 class="mini-title">Estrutura certa depende do problema</h3>
+      <p class="guide-copy">Escolher entre array, lista, arvore ou hash nao e so questao de Big-O, mas tambem de padrao de acesso e memoria.</p>
+    </article>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-callout">
+    <h2>Nota metodologica</h2>
+    <p>
+      A explicacao desta pagina e uma <strong>inferencia guiada</strong>: ela combina a enfase de Knuth em
+      representacao interna e custo de acesso com a hierarquia moderna de memoria usada em CPUs atuais.
+      Os termos <code>L1</code>, <code>L2</code>, <code>L3</code> e <code>RAM</code> nao sao apresentados aqui
+      como citacao literal do boxed set, mas como extensao contemporanea do mesmo raciocinio tecnico.
+    </p>
+  </div>
+</section>
+
+<section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">Fontes</p>
+    <h2 class="guide-section-title">Referencias tecnicas</h2>
+  </div>
+
+  <div class="source-list">
+    <a href="https://www.informit.com/store/art-of-computer-programming-volumes-1-4b-boxed-set-9780137935109" class="source-link" target="_blank" rel="noopener noreferrer">InformIT — The Art of Computer Programming, Volumes 1-4b Boxed Set</a>
+    <a href="https://www-cs-faculty.stanford.edu/~knuth/mmix.html" class="source-link" target="_blank" rel="noopener noreferrer">Donald Knuth — MMIX and machine-level performance perspective</a>
+    <a href="https://www.intel.com/content/www/us/en/docs/advisor/user-guide/2024-1/memory-level.html" class="source-link" target="_blank" rel="noopener noreferrer">Intel Advisor — Memory levels: L1, L2, L3 and DRAM</a>
+    <a href="https://www.intel.com/content/www/us/en/support/articles/000057727/processors.html" class="source-link" target="_blank" rel="noopener noreferrer">Intel Support — How to find L1, L2 and L3 cache</a>
+  </div>
+</section>
+{{end}}
