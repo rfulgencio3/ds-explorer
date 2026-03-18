@@ -57,7 +57,7 @@ function initStructurePage() {
   // ── Populate metadata ──────────────────────────────────────────────────
   if (meta) {
     document.getElementById('struct-name-breadcrumb').textContent = meta.name || 'Array';
-    document.title = `DS Explorer — ${meta.name}`;
+    document.title = `[ds-explorer] — ${meta.name}`;
     _populateComplexity(meta.complexity);
     _populateUseCases(meta.useCases);
     _populateSnippets(meta.codeSnippets);

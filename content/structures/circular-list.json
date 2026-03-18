@@ -1,0 +1,40 @@
+{
+  "id": "circular-list",
+  "name": "Lista Circular",
+  "category": "Linear Encadeada",
+  "description": "Variação da lista encadeada simples onde o último nó aponta de volta para o HEAD, formando um ciclo. Não existe null ao final — a travessia pode começar em qualquer nó e precisa de uma condição de parada explícita (ex: contar nós ou detectar retorno ao HEAD).",
+  "complexity": {
+    "access":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":   { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "insertEnd":     { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "insertMiddle":  { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "delete":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "space":         "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Escalonamento round-robin (processos em sistemas operacionais)",
+      "Buffers circulares (áudio, vídeo, rede)",
+      "Jogos multiplayer com rodadas em ciclo",
+      "Implementação de filas circulares e deques"
+    ],
+    "notRecommended": [
+      "Acesso aleatório por índice frequente",
+      "Quando é necessário iterar e detectar o fim naturalmente (sem sentinel)",
+      "Situações onde null como terminador simplifica a lógica",
+      "Cenários onde localidade de cache é crítica"
+    ],
+    "realWorldExamples": [
+      "Escalonador de processos do Linux (lista circular de tarefas)",
+      "Buffer de teclado e mouse no kernel",
+      "Playlist de músicas em modo loop",
+      "Gerenciamento de tokens em redes Token Ring"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "// Nó da lista circular\nclass Node {\n    public int Value;\n    public Node Next;  // último nó aponta para HEAD\n    public Node(int value) { Value = value; }\n}\n\n// Inserção no início — O(n) para atualizar ponteiro do último nó\nvoid InsertBegin(ref Node head, int value) {\n    Node newNode = new Node(value);\n    if (head == null) {\n        newNode.Next = newNode;  // aponta para si mesmo\n        head = newNode;\n        return;\n    }\n    // Encontra o último nó (tail.next == head)\n    Node tail = head;\n    while (tail.Next != head) tail = tail.Next;\n    newNode.Next = head;\n    tail.Next    = newNode;  // tail agora aponta para o novo HEAD\n    head         = newNode;\n}",
+    "python": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.next  = None  # último nó aponta de volta para head\n\nclass CircularList:\n    def __init__(self):\n        self.head = None\n\n    def insert_begin(self, value):\n        new_node = Node(value)\n        if self.head is None:\n            new_node.next = new_node  # lista de um nó — aponta para si\n            self.head = new_node\n            return\n        # Percorre até o último nó\n        tail = self.head\n        while tail.next != self.head:\n            tail = tail.next\n        new_node.next = self.head\n        tail.next     = new_node  # tail passa a apontar para o novo head\n        self.head     = new_node\n\n    def traverse(self):\n        if not self.head:\n            return\n        current = self.head\n        while True:\n            print(current.value)\n            current = current.next\n            if current == self.head:  # parada: voltou ao início\n                break",
+    "javascript": "class Node {\n    constructor(value) {\n        this.value = value;\n        this.next  = null;\n    }\n}\n\nclass CircularList {\n    constructor() { this.head = null; }\n\n    insertBegin(value) {\n        const node = new Node(value);\n        if (!this.head) {\n            node.next  = node;   // único nó aponta para si mesmo\n            this.head  = node;\n            return;\n        }\n        // Acha o tail (tail.next === head)\n        let tail = this.head;\n        while (tail.next !== this.head) tail = tail.next;\n        node.next  = this.head;\n        tail.next  = node;       // tail atualizado\n        this.head  = node;\n    }\n\n    traverse() {\n        if (!this.head) return;\n        let cur = this.head;\n        do {\n            console.log(cur.value);\n            cur = cur.next;\n        } while (cur !== this.head);  // para ao voltar ao HEAD\n    }\n}"
+  }
+}

@@ -1,26 +1,20 @@
 /**
- * singly.js — Lógica de simulação da Lista Encadeada Simples.
+ * circular-list.js — Lista Circular Encadeada.
  *
- * Estado interno: array de objetos { id, value }
- * O "id" é um número único por nó (sobrevive a reordenações).
+ * Igual à lista simples, mas:
+ *   - O último nó aponta de volta para o HEAD (snapshot type: 'circular').
+ *   - Operações de inserção/remoção precisam atualizar o ponteiro do tail.
+ *   - Busca encerra quando retorna ao HEAD (sem null terminal).
  */
 
 function initStructurePage() {
   let nodes  = [];
   let nextId = 0;
 
-  // ── Constantes de memória ──────────────────────────────────────────────
-  // Nó de lista encadeada simples (64-bit):
-  //   value (int32):  4 bytes
-  //   next (ptr64):   8 bytes
-  //   padding:        4 bytes  → total = 16 bytes por nó
-  // Alocação dinâmica: cada nó vai para um endereço aleatório no heap.
-  // Consequência: cada acesso via ponteiro = nova cache line → MISS.
+  // Mesmas constantes de memória da lista simples (mesmo layout de nó)
   const BYTES_PER_NODE = 16;
-  const BASE_ADDR      = 0x2000;
-
-  // Último nodeId acessado — para detectar acesso repetido (raro, mas possível)
-  let _prevAccessedId = -1;
+  const BASE_ADDR      = 0x4000;
+  let _prevAccessedId  = -1;
 
   // ── UI refs ────────────────────────────────────────────────────────────
   const meta        = window.__STRUCTURE_DATA__;
@@ -57,60 +51,44 @@ function initStructurePage() {
   _syncFields();
 
   if (meta) {
-    document.getElementById('struct-name-breadcrumb').textContent = meta.name || 'Lista Simples';
-    document.title = `[ds-explorer] — ${meta.name}`;
+    document.getElementById('struct-name-breadcrumb').textContent = meta.name || 'Lista Circular';
+    document.title = `ds-explorer — ${meta.name}`;
     _populateComplexity(meta.complexity);
     _populateUseCases(meta.useCases);
     _populateSnippets(meta.codeSnippets);
   }
 
-  MemoryPanel.init('singly');
+  MemoryPanel.init('singly');  // mesmos parâmetros de memória que lista simples
 
   // ── Memory helpers ─────────────────────────────────────────────────────
 
-  /**
-   * Gera um endereço simulado de heap para o nó com `id`.
-   * Usa hash do id para simular alocações fragmentadas.
-   */
   function _nodeAddr(id) {
-    // Knuth multiplicative hash → spread between 0x2000 e 0x5FFF
-    const offset  = ((id * 2654435761) >>> 0) % 0x4000;
-    const aligned = offset & ~0xF;  // alinha em 16 bytes
+    const offset  = ((id * 2246822519) >>> 0) % 0x4000;
+    const aligned = offset & ~0xF;
     const hex = (BASE_ADDR + aligned).toString(16).toUpperCase();
     return '0x' + hex.padStart(4, '0');
   }
 
-  /**
-   * Calcula evento de cache ao acessar o nó com `nodeId`.
-   * Listas encadeadas sofrem pointer chasing: cada nó fica em um endereço
-   * diferente no heap → praticamente todo acesso é um cache miss.
-   */
   function _cacheFor(nodeId) {
     const hit = nodeId === _prevAccessedId;
     _prevAccessedId = nodeId;
     if (hit) {
-      return { event: 'hit',  cycles: 4,   note: 'Nó ainda presente no cache L1 — acesso recente' };
+      return { event: 'hit',  cycles: 4,   note: 'Nó ainda presente no cache L1' };
     }
     return {
       event:  'miss',
       cycles: 200,
-      note:   `Ponteiro aponta para ${_nodeAddr(nodeId)} — endereço não contíguo, busca na RAM`,
+      note:   `Ponteiro circular aponta para ${_nodeAddr(nodeId)} — endereço heap não contíguo`,
     };
   }
 
-  /**
-   * Constrói o objeto `memory` para um step.
-   * `accessedNodeId` = id do nó acessado neste step (null = sem acesso específico).
-   */
   function _buildMemory(nodeList, accessedNodeId) {
     const totalBytes = nodeList.length * BYTES_PER_NODE;
     const cache = (accessedNodeId != null && accessedNodeId >= 0)
       ? _cacheFor(accessedNodeId)
       : { event: null, cycles: null, note: null };
 
-    const layout = nodeList.map(n => ({ value: n.value, addr: _nodeAddr(n.id) }));
-
-    // accessedIdx = posição no layout (para highlight visual)
+    const layout     = nodeList.map(n => ({ value: n.value, addr: _nodeAddr(n.id) }));
     const accessedIdx = (accessedNodeId != null)
       ? nodeList.findIndex(n => n.id === accessedNodeId)
       : null;
@@ -126,14 +104,14 @@ function initStructurePage() {
     };
   }
 
-  // ── Generate ─────────────────────────────────────────────────────────
+  // ── Generate ───────────────────────────────────────────────────────────
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(10, Math.max(2, parseInt(inputSize.value) || 5));
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
     _prevAccessedId = -1;
     Animator.load([{
-      description: 'Lista gerada com valores aleatórios.',
+      description: `Lista circular gerada com ${size} nós. O último nó aponta de volta para HEAD — sem null terminal.`,
       snapshot: _snapshot(nodes, []),
       memory:   _buildMemory(nodes, null),
     }]);
@@ -143,11 +121,10 @@ function initStructurePage() {
   // ── Execute ────────────────────────────────────────────────────────────
 
   btnExecute.addEventListener('click', () => {
-    if (nodes.length === 0 && !['insertBegin','insertEnd'].includes(selectOp.value)) {
+    if (nodes.length === 0 && !['insertBegin', 'insertEnd'].includes(selectOp.value)) {
       alert('Gere uma lista primeiro.');
       return;
     }
-
     const op     = selectOp.value;
     const value  = parseInt(inputValue.value);
     const index  = parseInt(inputIndex.value);
@@ -168,14 +145,12 @@ function initStructurePage() {
     }
 
     if (steps.length > 0) {
-      const lastSnap = steps[steps.length - 1].snapshot;
-      nodes = lastSnap.nodes.map(n => ({ id: n.id, value: n.value }));
+      nodes = steps[steps.length - 1].snapshot.nodes.map(n => ({ id: n.id, value: n.value }));
     }
-
     Animator.load(steps);
   });
 
-  // ── Operations ────────────────────────────────────────────────────────
+  // ── Operations ─────────────────────────────────────────────────────────
 
   function _insertBegin(val) {
     if (isNaN(val)) { alert('Informe um valor.'); return []; }
@@ -184,20 +159,29 @@ function initStructurePage() {
     const steps   = [];
 
     steps.push({
-      description: `Inserir ${val} no início. Criar novo nó com valor ${val}.`,
-      snapshot: _snapshot(list, [], 'neutral', [newNode], 'success'),
-      memory:   _buildMemory([newNode, ...list], newNode.id),
+      description: `Inserir ${val} no início. Em lista circular, o tail (nó ${list[list.length - 1]?.value}) precisa ser atualizado para apontar para o novo HEAD.`,
+      snapshot: _snapshot(list, [list.length - 1], 'warning'),
+      memory:   _buildMemory(list, list[list.length - 1]?.id ?? null),
     });
 
+    // Percorrer até o tail para atualizá-lo
+    for (let i = 0; i < list.length - 1; i++) {
+      steps.push({
+        description: `Passo ${i + 1}/${list.length}: Percorrendo via ↺ para encontrar o tail. Nó ${i} (valor ${list[i].value}).`,
+        snapshot: _snapshot(list, [i], 'visiting'),
+        memory:   _buildMemory(list, list[i].id),
+      });
+    }
+
     steps.push({
-      description: `Passo 2: O novo nó aponta para o antigo HEAD (${list[0]?.value ?? 'null'}).`,
-      snapshot: _snapshot(list, list.length > 0 ? [0] : [], 'visiting', [newNode], 'success'),
-      memory:   _buildMemory([newNode, ...list], list[0]?.id ?? null),
+      description: `Tail encontrado (valor ${list[list.length - 1].value}). Novo nó → HEAD antigo; tail.next → novo nó.`,
+      snapshot: _snapshot(list, [list.length - 1], 'warning', [newNode], 'success'),
+      memory:   _buildMemory([newNode, ...list], newNode.id),
     });
 
     const result = [newNode, ...list];
     steps.push({
-      description: `Passo 3: HEAD atualizado para o novo nó. Inserção concluída — O(1).`,
+      description: `HEAD atualizado. Inserção circular concluída. O ponteiro ↺ do tail aponta para o novo HEAD (${val}).`,
       snapshot: _snapshot(result, [0], 'success'),
       memory:   _buildMemory(result, null),
     });
@@ -210,25 +194,25 @@ function initStructurePage() {
     const list    = nodes.slice();
     const newNode = { id: nextId++, value: val };
     const steps   = [];
-    const total   = list.length + 2;
 
     steps.push({
-      description: `Inserir ${val} no fim. Percorrer lista até o último nó...`,
+      description: `Inserir ${val} no fim. Percorrendo via ↺ até o tail (último nó que aponta para HEAD)...`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
 
     for (let i = 0; i < list.length; i++) {
+      const isTail = i === list.length - 1;
       steps.push({
-        description: `Passo ${i + 1}/${total}: Visitando nó ${i} (valor ${list[i].value}). ${i === list.length - 1 ? 'Este é o último nó.' : 'Não é o último, avançar via next.'}`,
-        snapshot: _snapshot(list, [i], 'visiting'),
+        description: `Passo ${i + 1}/${list.length}: Nó ${i} (valor ${list[i].value}). ${isTail ? 'Tail encontrado — next aponta para HEAD.' : 'next não é HEAD, avançar.'}`,
+        snapshot: _snapshot(list, [i], isTail ? 'warning' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
     }
 
     const result = [...list, newNode];
     steps.push({
-      description: `Passo ${total}: Ponteiro next do último nó aponta para o novo nó. Inserção concluída.`,
+      description: `Tail.next agora aponta para ${val}; novo nó.next ↺ aponta para HEAD (${list[0]?.value}). Inserção concluída.`,
       snapshot: _snapshot(result, [result.length - 1], 'success'),
       memory:   _buildMemory(result, null),
     });
@@ -247,28 +231,28 @@ function initStructurePage() {
     const steps   = [];
 
     steps.push({
-      description: `Inserir ${val} na posição ${idx}. Percorrendo até o nó anterior (posição ${idx - 1})...`,
+      description: `Inserir ${val} na posição ${idx}. Percorrendo até o predecessor (posição ${idx - 1})...`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
 
     for (let i = 0; i < idx; i++) {
       steps.push({
-        description: `Passo ${i + 1}: Visitando nó ${i} (valor ${list[i].value}).${i === idx - 1 ? ' Este é o nó predecessor.' : ''}`,
+        description: `Passo ${i + 1}: Nó ${i} (valor ${list[i].value}).${i === idx - 1 ? ' Predecessor encontrado.' : ''}`,
         snapshot: _snapshot(list, [i], i === idx - 1 ? 'warning' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
     }
 
     steps.push({
-      description: `Passo ${idx + 1}: Novo nó aponta para o nó que estava na posição ${idx} (valor ${list[idx].value}).`,
+      description: `Novo nó (${val}) aponta para nó ${idx} (${list[idx].value}); predecessor aponta para novo nó.`,
       snapshot: _snapshot(list, [idx - 1, idx], 'visiting', [newNode], 'success'),
       memory:   _buildMemory(list, list[idx].id),
     });
 
     const result = [...list.slice(0, idx), newNode, ...list.slice(idx)];
     steps.push({
-      description: `Passo ${idx + 2}: Ponteiro next do nó ${idx - 1} atualizado. Inserção concluída.`,
+      description: `Inserção concluída. Ponteiro ↺ do tail permanece apontando para HEAD.`,
       snapshot: _snapshot(result, [idx], 'success'),
       memory:   _buildMemory(result, null),
     });
@@ -283,14 +267,24 @@ function initStructurePage() {
     const steps   = [];
 
     steps.push({
-      description: `Remover HEAD (valor: ${removed.value}). HEAD atual será desconectado.`,
-      snapshot: _snapshot(list, [0], 'danger'),
+      description: `Remover HEAD (valor: ${removed.value}). O tail (${list[list.length - 1].value}) precisa ser atualizado para apontar para o novo HEAD.`,
+      snapshot: _snapshot(list, [0, list.length - 1], 'danger'),
       memory:   _buildMemory(list, removed.id),
     });
 
+    // Percorrer até o tail
+    for (let i = 0; i < list.length - 1; i++) {
+      steps.push({
+        description: `Percorrendo ↺ para encontrar o tail. Nó ${i} (valor ${list[i].value}).`,
+        snapshot: _snapshot(list, [i], i === list.length - 2 ? 'warning' : 'visiting'),
+        memory:   _buildMemory(list, list[i].id),
+      });
+    }
+
     const result = list.slice(1);
+    const newHead = result[0]?.value ?? '(vazio)';
     steps.push({
-      description: `HEAD atualizado para o próximo nó${result[0] ? ` (valor ${result[0].value})` : ' (lista vazia)'}. Nó ${removed.value} removido — O(1).`,
+      description: `Tail.next atualizado para o novo HEAD (${newHead}). Nó ${removed.value} removido.`,
       snapshot: _snapshot(result, result.length > 0 ? [0] : [], 'success'),
       memory:   _buildMemory(result, null),
     });
@@ -302,32 +296,32 @@ function initStructurePage() {
     if (nodes.length === 0) { alert('Lista vazia.'); return []; }
     const list  = nodes.slice();
     const steps = [];
-    const total = list.length + 1;
 
     steps.push({
-      description: `Remover o último nó. Percorrendo até o penúltimo...`,
+      description: `Remover o último nó. Percorrendo ↺ até o penúltimo...`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
 
     for (let i = 0; i < list.length - 1; i++) {
+      const isPenult = i === list.length - 2;
       steps.push({
-        description: `Passo ${i + 1}/${total}: Visitando nó ${i} (valor ${list[i].value}). ${i === list.length - 2 ? 'Este é o penúltimo nó.' : 'Avançar.'}`,
-        snapshot: _snapshot(list, [i], i === list.length - 2 ? 'warning' : 'visiting'),
+        description: `Passo ${i + 1}/${list.length}: Nó ${i} (valor ${list[i].value}).${isPenult ? ' Penúltimo encontrado.' : ''}`,
+        snapshot: _snapshot(list, [i], isPenult ? 'warning' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
     }
 
     const removed = list[list.length - 1];
     steps.push({
-      description: `Nó ${removed.value} (posição ${list.length - 1}) marcado para remoção.`,
+      description: `Nó ${removed.value} marcado para remoção. Penúltimo.next ↺ apontará para HEAD (${list[0].value}).`,
       snapshot: _snapshot(list, [list.length - 1], 'danger'),
       memory:   _buildMemory(list, removed.id),
     });
 
     const result = list.slice(0, -1);
     steps.push({
-      description: `Ponteiro next do penúltimo nó definido como null. Nó ${removed.value} removido.`,
+      description: `Penúltimo agora é o novo tail; next ↺ aponta para HEAD. Nó ${removed.value} removido.`,
       snapshot: _snapshot(result, []),
       memory:   _buildMemory(result, null),
     });
@@ -344,7 +338,7 @@ function initStructurePage() {
     const steps = [];
 
     steps.push({
-      description: `Remover nó na posição ${idx}. Percorrendo até o predecessor...`,
+      description: `Remover nó na posição ${idx}. Percorrendo ↺ até o predecessor...`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
@@ -353,21 +347,15 @@ function initStructurePage() {
       const isTarget = i === idx;
       const isPred   = i === idx - 1;
       steps.push({
-        description: `Passo ${i + 1}: Visitando nó ${i} (valor ${list[i].value}).${isPred ? ' Predecessor encontrado.' : isTarget ? ' Nó a remover.' : ''}`,
+        description: `Passo ${i + 1}: Nó ${i} (valor ${list[i].value}).${isPred ? ' Predecessor.' : isTarget ? ' Nó a remover.' : ''}`,
         snapshot: _snapshot(list, [i], isPred ? 'warning' : isTarget ? 'danger' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
     }
 
-    steps.push({
-      description: `Passo ${idx + 2}: Atualizando ponteiro next do nó ${idx - 1} para apontar para o nó ${idx + 1}.`,
-      snapshot: _snapshot(list, [idx - 1, idx, idx + 1], 'warning'),
-      memory:   _buildMemory(list, list[idx - 1].id),
-    });
-
     const result = [...list.slice(0, idx), ...list.slice(idx + 1)];
     steps.push({
-      description: `Nó ${list[idx].value} removido. Ponteiros atualizados.`,
+      description: `Predecessor.next agora aponta para nó ${idx + 1}. Ponteiro ↺ do tail inalterado.`,
       snapshot: _snapshot(result, []),
       memory:   _buildMemory(result, null),
     });
@@ -381,25 +369,28 @@ function initStructurePage() {
     const steps = [];
 
     steps.push({
-      description: `Buscar valor ${val} para remover...`,
+      description: `Buscar ${val} na lista circular. Percorrendo ↺ a partir do HEAD...`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
 
     const idx = list.findIndex(n => n.value === val);
     if (idx === -1) {
-      steps.push({
-        description: `Valor ${val} não encontrado.`,
-        snapshot: _snapshot(list, []),
-        memory:   _buildMemory(list, null),
-      });
+      for (let i = 0; i < list.length; i++) {
+        steps.push({
+          description: `Nó ${i} (valor ${list[i].value}) — diferente. ${i === list.length - 1 ? 'Voltou ao HEAD — valor não encontrado.' : 'Avançar.'}`,
+          snapshot: _snapshot(list, [i], 'visiting'),
+          memory:   _buildMemory(list, list[i].id),
+        });
+      }
+      steps.push({ description: `Valor ${val} não encontrado na lista circular.`, snapshot: _snapshot(list, []), memory: _buildMemory(list, null) });
       return steps;
     }
 
     for (let i = 0; i <= idx; i++) {
       const found = i === idx;
       steps.push({
-        description: `Passo ${i + 1}: Nó ${i} tem valor ${list[i].value}. ${found ? 'ENCONTRADO!' : 'Diferente, avançar.'}`,
+        description: `Nó ${i} (valor ${list[i].value}). ${found ? 'ENCONTRADO!' : 'Diferente, avançar ↺.'}`,
         snapshot: _snapshot(list, [i], found ? 'danger' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
@@ -414,26 +405,23 @@ function initStructurePage() {
     const steps = [];
 
     steps.push({
-      description: `Busca linear pelo valor ${val}. Percorrendo a partir do HEAD...`,
+      description: `Busca circular pelo valor ${val}. A partir do HEAD, avançando ↺ — para quando voltar ao HEAD.`,
       snapshot: _snapshot(list, []),
       memory:   _buildMemory(list, null),
     });
 
     for (let i = 0; i < list.length; i++) {
       const found = list[i].value === val;
+      const isLast = i === list.length - 1;
       steps.push({
-        description: `Passo ${i + 1}/${list.length}: Nó ${i} tem valor ${list[i].value}. ${found ? 'ENCONTRADO!' : 'Diferente, avançar via next.'}`,
+        description: `Passo ${i + 1}/${list.length}: Nó ${i} (valor ${list[i].value}). ${found ? 'ENCONTRADO!' : isLast ? 'Voltando ao HEAD — não encontrado.' : 'Diferente, avançar ↺.'}`,
         snapshot: _snapshot(list, [i], found ? 'success' : 'visiting'),
         memory:   _buildMemory(list, list[i].id),
       });
       if (found) return steps;
     }
 
-    steps.push({
-      description: `Valor ${val} não encontrado. Chegou ao null.`,
-      snapshot: _snapshot(list, []),
-      memory:   _buildMemory(list, null),
-    });
+    steps.push({ description: `Valor ${val} não encontrado.`, snapshot: _snapshot(list, []), memory: _buildMemory(list, null) });
     return steps;
   }
 
@@ -444,11 +432,7 @@ function initStructurePage() {
     const list  = nodes.slice();
     const steps = [];
 
-    steps.push({
-      description: `Atualizar nó na posição ${idx}. Percorrendo...`,
-      snapshot: _snapshot(list, []),
-      memory:   _buildMemory(list, null),
-    });
+    steps.push({ description: `Atualizar posição ${idx}. Percorrendo ↺...`, snapshot: _snapshot(list, []), memory: _buildMemory(list, null) });
 
     for (let i = 0; i <= idx; i++) {
       steps.push({
@@ -479,7 +463,7 @@ function initStructurePage() {
         state: highlightedIdxs.includes(i) ? hlState : 'neutral',
       })),
     ];
-    return { type: 'singly', nodes: allNodes, pointers: { HEAD: allNodes[0]?.id } };
+    return { type: 'circular', nodes: allNodes, pointers: { HEAD: allNodes[0]?.id } };
   }
 
   // ── Metadata ───────────────────────────────────────────────────────────

@@ -122,19 +122,28 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 1rem 1rem;
   min-height: 300px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
+
+/* Scrollbar estilizada para combinar com o tema */
+.viz-area::-webkit-scrollbar        { height: 6px; }
+.viz-area::-webkit-scrollbar-track  { background: var(--color-bg); border-radius: 3px; }
+.viz-area::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+.viz-area::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 
 #viz-svg {
   display: block;
   width: 100%;
+  min-width: 100%;
   min-height: 240px;
   overflow: visible;
+  flex-shrink: 0;
 }
 
 /* Empty state */
@@ -230,6 +239,44 @@
   color: var(--color-danger);
   border: 1px solid var(--color-danger);
 }
+
+/* Hit-rate row */
+.mem-stats-row {
+  padding: 0.55rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mem-hitrate {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 120px;
+}
+
+.mem-hitrate-bar-wrap {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mem-hitrate-bar {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 2px;
+  transition: width 0.35s, background 0.35s;
+  width: 0%;
+}
+
+.mem-hitrate-bar--low { background: var(--color-danger); }
+.mem-hitrate-bar--mid { background: var(--color-warning); }
 
 /* Access row: cache + cycles + note */
 .memory-access-row {
@@ -509,6 +556,20 @@ details[open] > .info-block-title::after {
   white-space: pre;
 }
 
+/* ===== SYNTAX HIGHLIGHT — step log e descrições ===== */
+/* Inspirado no tema Dark+ do VS Code                   */
+.hl-kw       { color: var(--color-primary);  font-weight: 600; }  /* HEAD, TAIL, next, prev  */
+.hl-null     { color: #8baac8;               font-weight: 600; }  /* null                   */
+.hl-num      { color: var(--color-warning);                    }  /* literais numéricos     */
+.hl-addr     { color: #4ec9b0; font-family: var(--font-mono);  }  /* 0x endereços           */
+.hl-hit      { color: var(--color-success);  font-weight: 700; }  /* HIT                    */
+.hl-miss     { color: var(--color-danger);   font-weight: 700; }  /* MISS                   */
+.hl-found    { color: var(--color-success);  font-weight: 700; }  /* ENCONTRADO!            */
+.hl-bigO     { color: #c586c0;                                 }  /* O(n), O(1), O(log n)   */
+.hl-circular { color: var(--color-primary);                    }  /* ↺                      */
+.hl-arrow    { color: var(--color-accent);                     }  /* → ←                    */
+.hl-type     { color: #4ec9b0; font-style: italic;             }  /* int32, node*, tipos    */
+
 /* ===== SVG NODE STYLES ===== */
 .node-rect {
   rx: 6;
@@ -532,6 +593,11 @@ details[open] > .info-block-title::after {
   pointer-events: none;
 }
 
+/* Valores numéricos nos nós — cor de literal numérico (estilo editor) */
+.node-value {
+  fill: #e0a03e;  /* equivalente ao --color-warning com leve warm shift */
+}
+
 .node-index {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -541,13 +607,26 @@ details[open] > .info-block-title::after {
   pointer-events: none;
 }
 
+/* Anotação de tipo nos nós (int32, node*) — estilo type annotation */
+.node-type-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: #4ec9b0;
+  dominant-baseline: auto;
+  text-anchor: middle;
+  pointer-events: none;
+  opacity: 0.75;
+  font-style: italic;
+}
+
 .pointer-label {
   font-family: var(--font-mono);
   font-size: 11px;
   fill: var(--color-primary);
-  font-weight: bold;
+  font-weight: 600;
   dominant-baseline: middle;
   text-anchor: middle;
+  font-style: italic;   /* variáveis de ponteiro em itálico, estilo editor */
 }
 
 .arrow-line {
@@ -555,6 +634,12 @@ details[open] > .info-block-title::after {
   stroke-width: 1.5;
   fill: none;
   marker-end: url(#arrowhead);
+}
+
+.arrow-line--circular {
+  stroke: var(--color-primary);
+  stroke-dasharray: 5 3;
+  opacity: 0.65;
 }
 
 .arrow-line--null {

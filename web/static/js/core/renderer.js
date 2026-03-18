@@ -49,6 +49,10 @@ const Renderer = (() => {
               refX="8" refY="3" orient="auto">
         <polygon points="0 0, 8 3, 0 6" fill="#4f8ef7"/>
       </marker>
+      <marker id="arrowhead-circular" markerWidth="8" markerHeight="6"
+              refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#3d8fd4"/>
+      </marker>
     `;
     svg.appendChild(defs);
 
@@ -120,17 +124,31 @@ const Renderer = (() => {
       rx: 6, ry: 6,
     });
 
-    const valueText = _el('text', { x: NODE_W / 2, y: NODE_H / 2, class: 'node-text' });
+    // Value text — styled as a numeric literal (warm orange, like editors)
+    const valueText = _el('text', { x: NODE_W / 2, y: NODE_H / 2, class: 'node-text node-value' });
     valueText.textContent = node.value ?? '';
 
     content.appendChild(rect);
     content.appendChild(valueText);
 
-    let indexLabel = null;
+    let indexLabel  = null;
+    let typeLabel   = null;
+
     if (type === 'array') {
+      // Index in [i] bracket notation — looks like array access syntax
       indexLabel = _el('text', { x: NODE_W / 2, y: -10, class: 'node-index' });
-      indexLabel.textContent = index;
+      indexLabel.textContent = `[${index}]`;
       content.appendChild(indexLabel);
+
+      // Type annotation — small "int32" above index, code-editor style
+      typeLabel = _el('text', { x: NODE_W / 2, y: -22, class: 'node-type-label' });
+      typeLabel.textContent = 'int32';
+      content.appendChild(typeLabel);
+    } else {
+      // Linked-list nodes: tiny "node*" type annotation at top-left of rect
+      typeLabel = _el('text', { x: 4, y: 9, class: 'node-type-label' });
+      typeLabel.textContent = type === 'doubly' ? 'dbl*' : 'node*';
+      content.appendChild(typeLabel);
     }
 
     group.appendChild(content);
@@ -139,7 +157,7 @@ const Renderer = (() => {
     // the arrow layer (bottom) and the label layer (top).
     svg.insertBefore(group, _labelLayer);
 
-    return { group, content, rect, valueText, indexLabel };
+    return { group, content, rect, valueText, indexLabel, typeLabel };
   }
 
   /**
@@ -157,7 +175,7 @@ const Renderer = (() => {
     els.valueText.textContent = node.value ?? '';
 
     if (type === 'array' && els.indexLabel) {
-      els.indexLabel.textContent = index;
+      els.indexLabel.textContent = `[${index}]`;
     }
   }
 
@@ -179,6 +197,7 @@ const Renderer = (() => {
     if (placeholder) placeholder.remove();
 
     if (!snapshot || !snapshot.nodes || snapshot.nodes.length === 0) {
+      svg.style.minWidth = '';
       for (const [, els] of _nodeMap) _removeNode(els);
       _nodeMap.clear();
       _arrowLayer.innerHTML = '';
@@ -187,8 +206,15 @@ const Renderer = (() => {
       return;
     }
 
-    const type      = snapshot.type || 'array';
-    const nodes     = snapshot.nodes;
+    const type  = snapshot.type || 'array';
+    const nodes = snapshot.nodes;
+
+    // Expand SVG width so long structures get a horizontal scroll instead of clipping.
+    // Must be set BEFORE _calcPositions() reads svg.getBoundingClientRect().width.
+    const contentW = nodes.length * NODE_W + Math.max(0, nodes.length - 1) * H_GAP;
+    const neededW  = contentW + START_X * 2 + (type !== 'array' ? H_GAP + 30 : 0);
+    svg.style.minWidth = neededW + 'px';
+
     const positions = _calcPositions(nodes);
 
     // ① Remove nodes that no longer exist
@@ -214,7 +240,9 @@ const Renderer = (() => {
     _arrowLayer.innerHTML = '';
     _labelLayer.innerHTML = '';
 
-    if (type !== 'array') {
+    if (type === 'circular') {
+      _drawCircularArrows(positions, nodes);
+    } else if (type !== 'array') {
       _drawLinkedListArrows(snapshot, positions, nodes);
     }
     _drawPointerLabels(positions, nodes, type);
@@ -257,8 +285,9 @@ const Renderer = (() => {
         const nullLabel = _el('text', {
           x: x + NODE_W + H_GAP - 2,
           y: y + NODE_H / 2,
-          class: 'node-index',
+          class: 'pointer-label',
           'dominant-baseline': 'middle',
+          fill: '#8baac8',   // hl-null color (keyword style)
         });
         nullLabel.textContent = 'null';
         _arrowLayer.appendChild(nullLabel);
@@ -266,13 +295,64 @@ const Renderer = (() => {
     });
   }
 
+  /** Draws arrows for a circular singly-linked list.
+   *  Consecutive arrows go right (same as singly).
+   *  The last→first wrap-around is shown as a rounded path below the nodes. */
+  function _drawCircularArrows(positions, nodes) {
+    if (nodes.length === 0) return;
+
+    // Draw next arrows between consecutive nodes
+    for (let i = 0; i < nodes.length - 1; i++) {
+      const { x, y } = positions[i];
+      const nx = positions[i + 1].x;
+      _drawArrow(x + NODE_W + 2, y + NODE_H / 2, nx - 2, y + NODE_H / 2);
+    }
+
+    // Circular wrap-around arrow: last node → first node
+    const first = positions[0];
+    const last  = positions[nodes.length - 1];
+    const below = first.y + NODE_H + 48;
+
+    // U-shaped path: exit last node right → go down → go left → enter first node left
+    const x1 = last.x  + NODE_W + 14;
+    const x0 = first.x - 14;
+    const d  = [
+      `M ${last.x + NODE_W + 2} ${last.y  + NODE_H / 2}`,
+      `L ${x1}                  ${last.y  + NODE_H / 2}`,
+      `L ${x1}                  ${below}`,
+      `L ${x0}                  ${below}`,
+      `L ${x0}                  ${first.y + NODE_H / 2}`,
+      `L ${first.x - 2}         ${first.y + NODE_H / 2}`,
+    ].join(' ');
+
+    const path = _el('path', {
+      d,
+      class: 'arrow-line arrow-line--circular',
+      fill: 'none',
+      'marker-end': 'url(#arrowhead-circular)',
+    });
+    _arrowLayer.appendChild(path);
+
+    // Label "↺" at the midpoint of the bottom arc
+    const midX = (x1 + x0) / 2;
+    const label = _el('text', {
+      x: midX, y: below + 13,
+      class: 'pointer-label',
+      'dominant-baseline': 'middle',
+      'text-anchor': 'middle',
+    });
+    label.textContent = '↺';
+    _arrowLayer.appendChild(label);
+  }
+
   function _drawPointerLabels(positions, nodes, type) {
     if (type === 'array' || nodes.length === 0) return;
 
-    _drawPointerLabel('HEAD', positions[0].x, positions[0].y);
+    // Lowercase style — matches coding convention (variable names, not constants)
+    _drawPointerLabel('head', positions[0].x, positions[0].y);
 
     if (type === 'doubly') {
-      _drawPointerLabel('TAIL', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
+      _drawPointerLabel('tail', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
     }
   }
 

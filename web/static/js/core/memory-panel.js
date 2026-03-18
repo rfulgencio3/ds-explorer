@@ -30,6 +30,8 @@ const MemoryPanel = (() => {
       cacheLineElems: 16,       // 64B / 4B = 16 ints por cache line
       baseAddr: 0x1000,
       fragmented: false,
+      // Sem overhead de ponteiro — todos os bytes são dados
+      ptrOverhead: null,
     },
     singly: {
       bytesPerElem: 16,         // value(4) + next ptr(8) + padding(4) = 16B
@@ -38,6 +40,8 @@ const MemoryPanel = (() => {
       cacheLineElems: 4,        // 64B / 16B = 4 nós por cache line
       baseAddr: 0x2000,
       fragmented: true,
+      // 4B dados + 12B ponteiro/padding → 75% overhead
+      ptrOverhead: '75%  (ptr 12B / 16B)',
     },
     doubly: {
       bytesPerElem: 24,         // value(4) + next(8) + prev(8) + padding(4) = 24B
@@ -46,10 +50,14 @@ const MemoryPanel = (() => {
       cacheLineElems: 2,        // floor(64B / 24B) = 2 nós por cache line
       baseAddr: 0x2000,
       fragmented: true,
+      // 4B dados + 20B ponteiros/padding → 83% overhead
+      ptrOverhead: '83%  (ptr 20B / 24B)',
     },
   };
 
-  let _cfg = null;
+  let _cfg   = null;
+  let _hits  = 0;
+  let _misses = 0;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const el = id => document.getElementById(id);
@@ -67,11 +75,32 @@ const MemoryPanel = (() => {
     _set('mem-cycles',      '—');
     _set('mem-note',        '');
 
+    // Overhead de ponteiros — visível apenas para listas encadeadas
+    const overheadMetric = el('mem-overhead-metric');
+    if (overheadMetric) {
+      overheadMetric.style.display = _cfg.ptrOverhead ? 'flex' : 'none';
+    }
+    _set('mem-ptr-overhead', _cfg.ptrOverhead || '—');
+
     const ce = el('mem-cache-event');
     if (ce) { ce.textContent = '—'; ce.className = 'mem-badge'; }
 
     const blocks = el('mem-layout-blocks');
     if (blocks) blocks.innerHTML = '';
+
+    resetStats();
+  }
+
+  // ── resetStats ────────────────────────────────────────────────────────────
+  // Chamado pelo Animator ao iniciar uma nova operação (load/restart).
+
+  function resetStats() {
+    _hits   = 0;
+    _misses = 0;
+    _set('mem-hit-count', '—');
+    _set('mem-hitrate-note', '');
+    const bar = el('mem-hitrate-bar');
+    if (bar) { bar.style.width = '0%'; bar.className = 'mem-hitrate-bar'; }
   }
 
   // ── update ────────────────────────────────────────────────────────────────
@@ -91,9 +120,11 @@ const MemoryPanel = (() => {
       if (memory.event === 'hit') {
         ce.textContent = 'HIT';
         ce.className   = 'mem-badge mem-badge--hit';
+        _hits++;
       } else if (memory.event === 'miss') {
         ce.textContent = 'MISS';
         ce.className   = 'mem-badge mem-badge--miss';
+        _misses++;
       } else {
         ce.textContent = '—';
         ce.className   = 'mem-badge';
@@ -106,8 +137,38 @@ const MemoryPanel = (() => {
     // Nota explicativa
     _set('mem-note', memory.note || '');
 
+    // Taxa de acerto acumulada
+    _updateHitRate();
+
     // Layout visual
     if (memory.layout) _renderLayout(memory.layout, memory.accessedIdx, memory.type);
+  }
+
+  function _updateHitRate() {
+    const total = _hits + _misses;
+    if (total === 0) return;
+
+    const pct = Math.round(_hits / total * 100);
+    _set('mem-hit-count', `${_hits} HIT · ${_misses} MISS  (${pct}%)`);
+
+    const bar = el('mem-hitrate-bar');
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.className = 'mem-hitrate-bar'
+        + (pct >= 70 ? '' : pct >= 40 ? ' mem-hitrate-bar--mid' : ' mem-hitrate-bar--low');
+    }
+
+    // Nota contextual sobre o resultado
+    const note = _cfg && _cfg.fragmented
+      ? (pct === 0
+          ? 'Toda travessia em lista encadeada gera MISS — ponteiros dispersos no heap.'
+          : `${pct}% de hits — listas encadeadas raramente aproveitam localidade de cache.`)
+      : (pct === 100
+          ? 'Acesso sequencial — excelente localidade de cache (todos na mesma cache line).'
+          : pct >= 70
+            ? `${pct}% de hits — bom aproveitamento da cache line.`
+            : `${pct}% de hits — saltos entre cache lines aumentam a latência.`);
+    _set('mem-hitrate-note', note);
   }
 
   // ── layout visual ─────────────────────────────────────────────────────────
@@ -166,5 +227,5 @@ const MemoryPanel = (() => {
     _set('mem-note',   '');
   }
 
-  return { init, update };
+  return { init, update, resetStats };
 })();

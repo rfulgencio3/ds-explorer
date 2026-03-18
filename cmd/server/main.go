@@ -26,10 +26,18 @@ var registry = []Structure{
 	{ID: "array", Name: "Array Estático", Category: "Linear", SearchBig0: "O(n)", Available: true},
 	{ID: "singly-linked-list", Name: "Lista Encadeada Simples", Category: "Linear Encadeada", SearchBig0: "O(n)", Available: true},
 	{ID: "doubly-linked-list", Name: "Lista Encadeada Dupla", Category: "Linear Encadeada", SearchBig0: "O(n)", Available: true},
+	{ID: "circular-list", Name: "Lista Circular", Category: "Linear Encadeada", SearchBig0: "O(n)", Available: true},
 	// Future structures — set Available: false until implemented
 	{ID: "stack", Name: "Pilha (Stack)", Category: "Linear", SearchBig0: "O(n)", Available: false},
 	{ID: "queue", Name: "Fila (Queue)", Category: "Linear", SearchBig0: "O(n)", Available: false},
-	{ID: "binary-tree", Name: "Árvore Binária", Category: "Árvore", SearchBig0: "O(log n)", Available: false},
+	{ID: "circular-queue", Name: "Fila Circular", Category: "Linear", SearchBig0: "O(n)", Available: false},
+	{ID: "deque", Name: "Deque", Category: "Linear", SearchBig0: "O(n)", Available: false},
+	{ID: "binary-search-tree", Name: "Árvore Binária de Busca", Category: "Árvore", SearchBig0: "O(log n)", Available: false},
+	{ID: "avl-tree", Name: "Árvore AVL", Category: "Árvore", SearchBig0: "O(log n)", Available: false},
+	{ID: "heap", Name: "Heap (Min/Max)", Category: "Árvore", SearchBig0: "O(n)", Available: false},
+	{ID: "hash-table", Name: "Tabela Hash", Category: "Hash", SearchBig0: "O(1)", Available: false},
+	{ID: "graph", Name: "Grafo", Category: "Grafo", SearchBig0: "O(V+E)", Available: false},
+	{ID: "trie", Name: "Trie", Category: "Árvore", SearchBig0: "O(m)", Available: false},
 }
 
 var templates map[string]*template.Template
@@ -53,6 +61,7 @@ func main() {
 	mux.HandleFunc("GET /compare", handleCompare)
 
 	// API
+	mux.HandleFunc("GET /api/structures", handleAPIStructures)
 	mux.HandleFunc("GET /api/structure/{id}", handleAPIStructure)
 
 	log.Println("ds-explorer listening on http://localhost:8080")
@@ -117,6 +126,10 @@ func handleCompare(w http.ResponseWriter, r *http.Request) {
 	if err := templates["compare.html"].ExecuteTemplate(w, "compare.html", nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func handleAPIStructures(w http.ResponseWriter, r *http.Request) {
+	renderJSON(w, registry)
 }
 
 func handleAPIStructure(w http.ResponseWriter, r *http.Request) {

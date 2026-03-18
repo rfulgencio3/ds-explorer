@@ -37,12 +37,36 @@ const Animator = (() => {
     speedLabel.textContent = SPEED_NAMES[sliderSpeed.value] || 'Médio';
   }
 
+  /**
+   * Aplica syntax highlighting nas descrições dos passos.
+   * Combina todos os padrões numa única regex para evitar double-replace.
+   * Inspirado no tema Dark+ do VS Code.
+   */
+  function _hl(text) {
+    return text.replace(
+      /(O\((?:log n|n|1)\)|0x[0-9A-Fa-f]+|\bHIT\b|\bMISS\b|ENCONTRADO!?|\bnullptr?\b|\b(?:head|HEAD|tail|TAIL|next|prev)\b|↺|\b\d+\b|[→←])/g,
+      (m) => {
+        if (/^O\(/.test(m))                         return `<span class="hl-bigO">${m}</span>`;
+        if (/^0x/.test(m))                          return `<span class="hl-addr">${m}</span>`;
+        if (m === 'HIT')                            return `<span class="hl-hit">${m}</span>`;
+        if (m === 'MISS')                           return `<span class="hl-miss">${m}</span>`;
+        if (/^ENCONTRADO/.test(m))                  return `<span class="hl-found">${m}</span>`;
+        if (/^null/.test(m))                        return `<span class="hl-null">${m}</span>`;
+        if (/^(head|HEAD|tail|TAIL|next|prev)$/.test(m)) return `<span class="hl-kw">${m}</span>`;
+        if (m === '↺')                              return `<span class="hl-circular">${m}</span>`;
+        if (/^\d+$/.test(m))                        return `<span class="hl-num">${m}</span>`;
+        if (/^[→←]$/.test(m))                      return `<span class="hl-arrow">${m}</span>`;
+        return m;
+      }
+    );
+  }
+
   function _buildLog() {
     stepLog.innerHTML = '';
     _steps.forEach((step, i) => {
       const div = document.createElement('div');
       div.className = 'log-step' + (i === _current ? ' log-step--active' : '');
-      div.innerHTML = `<span class="log-step-num">${i + 1}/${_steps.length}</span>${step.description}`;
+      div.innerHTML = `<span class="log-step-num">${i + 1}/${_steps.length}</span>${_hl(step.description)}`;
       stepLog.appendChild(div);
     });
     // Scroll active step into view
@@ -69,6 +93,7 @@ const Animator = (() => {
     _stopAuto();
     _steps   = steps || [];
     _current = _steps.length > 0 ? 0 : -1;
+    MemoryPanel.resetStats();
     _renderCurrent();
   }
 
@@ -91,6 +116,7 @@ const Animator = (() => {
   function restart() {
     _stopAuto();
     _current = _steps.length > 0 ? 0 : -1;
+    MemoryPanel.resetStats();
     _renderCurrent();
   }
 

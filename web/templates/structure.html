@@ -1,6 +1,6 @@
 {{template "base" .}}
 
-{{define "title"}}DS Explorer — Estrutura{{end}}
+{{define "title"}}ds-explorer — Estrutura{{end}}
 
 {{define "content"}}
 <div class="structure-page" data-structure-id="{{.ID}}">
@@ -122,6 +122,11 @@
             <span class="mem-metric-label">Cache line</span>
             <span class="mem-metric-value" id="mem-cache-line">—</span>
           </div>
+          <!-- Overhead de ponteiros: visível apenas para listas encadeadas -->
+          <div class="mem-metric" id="mem-overhead-metric" style="display:none">
+            <span class="mem-metric-label">Overhead ptr</span>
+            <span class="mem-metric-value" id="mem-ptr-overhead">—</span>
+          </div>
         </div>
 
         <div class="memory-access-row">
@@ -134,6 +139,18 @@
             <span class="mem-metric-value mem-metric-value--mono" id="mem-cycles">—</span>
           </div>
           <div class="mem-note" id="mem-note"></div>
+        </div>
+
+        <!-- Taxa de acerto acumulada da operação atual -->
+        <div class="mem-stats-row">
+          <div class="mem-metric mem-hitrate">
+            <span class="mem-metric-label">Taxa de acerto</span>
+            <span class="mem-metric-value" id="mem-hit-count">—</span>
+            <div class="mem-hitrate-bar-wrap">
+              <div class="mem-hitrate-bar" id="mem-hitrate-bar"></div>
+            </div>
+          </div>
+          <div class="mem-note" id="mem-hitrate-note"></div>
         </div>
 
         <div class="memory-layout-section">
@@ -226,6 +243,7 @@
     'array':              'array',
     'singly-linked-list': 'singly',
     'doubly-linked-list': 'doubly',
+    'circular-list':      'circular-list',
   };
   const jsFile = jsMap[id] || id;
   script.src = `/static/js/structures/${jsFile}.js`;
