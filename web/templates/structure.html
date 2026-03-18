@@ -248,7 +248,11 @@
     'doubly-linked-list': 'doubly',
     'circular-list':      'circular-list',
   };
-  const jsFile = jsMap[id] || id;
+  const jsFile = jsMap[id] || '';
+  if (!jsFile) {
+    console.warn('[ds-explorer] No JS mapping for structure id:', id);
+    return;
+  }
   const cacheBuster = new URLSearchParams(window.location.search).get('__lr');
   script.src = `/static/js/structures/${jsFile}.js${cacheBuster ? `?v=${cacheBuster}` : ''}`;
   script.onload = () => initStructurePage();

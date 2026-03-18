@@ -43,7 +43,14 @@ const Animator = (() => {
    * Inspirado no tema Dark+ do VS Code.
    */
   function _hl(text) {
-    return text.replace(
+    // Escape text first so unmatched segments are safe in innerHTML.
+    // Tokens matched by the regex below (digits, hex, keywords, arrows) never
+    // contain &, < or > so no double-escaping occurs.
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return escaped.replace(
       /(O\((?:log n|n|1)\)|0x[0-9A-Fa-f]+|\bHIT\b|\bMISS\b|ENCONTRADO!?|\bnullptr?\b|\b(?:head|HEAD|tail|TAIL|next|prev)\b|↺|\b\d+\b|[→←])/g,
       (m) => {
         if (/^O\(/.test(m))                         return `<span class="hl-bigO">${m}</span>`;

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -104,11 +105,13 @@ func getTemplate(page string) (*template.Template, error) {
 func renderPage(w http.ResponseWriter, page string, data any) {
 	tmpl, err := getTemplate(page)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("renderPage: getTemplate(%s): %v", page, err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	if err := tmpl.ExecuteTemplate(w, page, data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("renderPage: ExecuteTemplate(%s): %v", page, err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 }
 

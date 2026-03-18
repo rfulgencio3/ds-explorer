@@ -14,6 +14,24 @@
 
 const StructureUI = (() => {
 
+  // ── HTML escaping ─────────────────────────────────────────────────────────
+
+  /**
+   * Escapa &, <, >, ", ' para entidades HTML.
+   * Usada para inserir texto do JSON com segurança via innerHTML.
+   * @param {string} str
+   * @returns {string}
+   */
+  function _escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
   // ── Mapa de campos por operação ──────────────────────────────────────────
   // Idêntico em todas as estruturas lineares — pode ser sobrescrito localmente
   // se uma estrutura tiver operações diferentes (ex: Stack com push/pop).
@@ -69,10 +87,10 @@ const StructureUI = (() => {
       .filter(([, obj]) => obj)
       .map(([name, obj]) => `
         <tr>
-          <td>${name}</td>
-          <td>${obj.best}</td>
-          <td>${obj.average}</td>
-          <td>${obj.worst}</td>
+          <td>${_escapeHtml(name)}</td>
+          <td>${_escapeHtml(obj.best)}</td>
+          <td>${_escapeHtml(obj.average)}</td>
+          <td>${_escapeHtml(obj.worst)}</td>
         </tr>`)
       .join('');
 
@@ -91,7 +109,7 @@ const StructureUI = (() => {
     const fill = (id, items) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
+      el.innerHTML = (items || []).map(t => `<li>${_escapeHtml(t)}</li>`).join('');
     };
     fill('list-recommended',     u.recommended);
     fill('list-not-recommended', u.notRecommended);

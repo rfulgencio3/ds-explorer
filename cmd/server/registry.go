@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Structure holds metadata for a data structure card and page.
@@ -82,9 +82,12 @@ func isKnownID(id string) bool {
 }
 
 // loadStructureJSON reads content/structures/{id}.json from disk.
+// id must be a known registry entry; returns an error for any unrecognised
+// value, preventing path traversal regardless of the caller.
 func loadStructureJSON(id string) ([]byte, error) {
-	// Sanitise id to prevent path traversal.
-	id = filepath.Base(strings.ReplaceAll(id, "..", ""))
+	if !isKnownID(id) {
+		return nil, fmt.Errorf("unknown structure id")
+	}
 	path := filepath.Join("content", "structures", id+".json")
 	return os.ReadFile(path)
 }

@@ -57,7 +57,18 @@ func main() {
 
 	addr := serverAddr()
 	log.Printf("ds-explorer listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	log.Fatal(http.ListenAndServe(addr, securityHeaders(mux)))
+}
+
+// securityHeaders wraps h and sets defensive HTTP response headers on every response.
+func securityHeaders(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		h.ServeHTTP(w, r)
+	})
 }
 
 func serverAddr() string {
@@ -128,6 +139,11 @@ func handleAPIStructures(w http.ResponseWriter, r *http.Request) {
 
 func handleAPIStructure(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	// Guard: reject any id not in the known registry (prevents path traversal).
+	if !isKnownID(id) {
+		http.Error(w, `{"error":"not found"}`, http.StatusNotFound)
+		return
+	}
 	data, err := loadStructureJSON(id)
 	if err != nil {
 		http.Error(w, `{"error":"not found"}`, http.StatusNotFound)
