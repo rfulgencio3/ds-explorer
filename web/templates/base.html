@@ -1,0 +1,40 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{block "title" .}}DS Explorer{{end}}</title>
+
+  <!-- JetBrains Mono — fonte principal (combina com identidade visual do logo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/structure.css">
+  <link rel="stylesheet" href="/static/css/animations.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-bracket">[</span>ds-explorer<span class="logo-bracket">]</span>
+      </a>
+      <nav class="site-nav">
+        <a href="/" class="nav-link">Estruturas</a>
+        <a href="/compare" class="nav-link nav-link--disabled" title="Em breve">Comparar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    {{block "content" .}}{{end}}
+  </main>
+
+  <footer class="site-footer">
+    <p><span class="footer-logo"><span class="logo-bracket">[</span>ds-explorer<span class="logo-bracket">]</span></span> &mdash; Ferramenta educacional para Estrutura de Dados</p>
+  </footer>
+</body>
+</html>
+{{end}}

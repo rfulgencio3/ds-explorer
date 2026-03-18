@@ -1,0 +1,40 @@
+{
+  "id": "singly-linked-list",
+  "name": "Lista Encadeada Simples",
+  "category": "Linear Encadeada",
+  "description": "Cada nó armazena um valor e um ponteiro para o próximo nó. O HEAD aponta para o primeiro nó; o último nó aponta para null. Inserção/remoção no início é O(1), mas acesso por índice requer percorrer a lista.",
+  "complexity": {
+    "access":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":   { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "insertEnd":     { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "insertMiddle":  { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "delete":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "space":         "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Inserções e remoções frequentes no início da coleção",
+      "Tamanho dos dados cresce e encolhe dinamicamente",
+      "Implementação de pilhas (stack) e filas (queue)",
+      "Situações onde não é necessário acesso por índice"
+    ],
+    "notRecommended": [
+      "Acesso aleatório por índice frequente",
+      "Necessidade de percorrer a lista de trás para frente",
+      "Memória limitada (cada nó tem overhead do ponteiro)",
+      "Aplicações onde localidade de cache é crítica"
+    ],
+    "realWorldExamples": [
+      "Histórico de navegação (desfazer uma página por vez)",
+      "Lista de reprodução de músicas (avançar música)",
+      "Fila de impressão de documentos",
+      "Pilha de chamadas de funções (call stack)"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "// Definição do nó\nclass Node {\n    public int Value;\n    public Node Next;\n    public Node(int value) { Value = value; }\n}\n\n// Inserção no início — O(1)\nvoid InsertBegin(ref Node head, int value) {\n    Node newNode = new Node(value);\n    newNode.Next = head;  // aponta para o antigo HEAD\n    head = newNode;       // HEAD passa a ser o novo nó\n}",
+    "python": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.next = None  # ponteiro para o próximo nó\n\nclass SinglyLinkedList:\n    def __init__(self):\n        self.head = None\n\n    def insert_begin(self, value):\n        new_node = Node(value)\n        new_node.next = self.head  # aponta para o antigo HEAD\n        self.head = new_node       # HEAD passa a ser o novo nó",
+    "javascript": "class Node {\n    constructor(value) {\n        this.value = value;\n        this.next = null;  // ponteiro para o próximo nó\n    }\n}\n\nclass SinglyLinkedList {\n    constructor() { this.head = null; }\n\n    insertBegin(value) {\n        const node = new Node(value);\n        node.next = this.head;  // aponta para o antigo HEAD\n        this.head = node;       // HEAD passa a ser o novo nó\n    }\n}"
+  }
+}

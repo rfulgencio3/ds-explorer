@@ -1,0 +1,39 @@
+{
+  "id": "doubly-linked-list",
+  "name": "Lista Encadeada Dupla",
+  "category": "Linear Encadeada",
+  "description": "Cada nó possui ponteiros para o próximo (next) E para o anterior (prev). HEAD aponta para o início e TAIL para o fim. Isso permite percorrer nos dois sentidos e inserção/remoção no início e no fim em O(1).",
+  "complexity": {
+    "access":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":   { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "insertEnd":     { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "insertMiddle":  { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "delete":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "space":         "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Necessidade de percorrer a lista nos dois sentidos",
+      "Inserções e remoções frequentes em ambas as extremidades",
+      "Implementação de deques (double-ended queues)",
+      "Histórico com navegação para frente e para trás"
+    ],
+    "notRecommended": [
+      "Acesso aleatório por índice frequente",
+      "Memória muito limitada (2 ponteiros por nó vs 1 na simples)",
+      "Dados apenas lidos da esquerda para a direita"
+    ],
+    "realWorldExamples": [
+      "Histórico do navegador (voltar e avançar página)",
+      "Editor de texto com desfazer/refazer (undo/redo)",
+      "Player de música com botões anterior e próximo",
+      "Cache LRU (Least Recently Used)"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "class Node {\n    public int Value;\n    public Node Next, Prev;  // dois ponteiros!\n    public Node(int value) { Value = value; }\n}\n\n// Inserção no início — O(1)\nvoid InsertBegin(ref Node head, ref Node tail, int value) {\n    Node n = new Node(value);\n    n.Next = head;\n    if (head != null) head.Prev = n;  // antigo HEAD ganha predecessor\n    else tail = n;                     // lista estava vazia\n    head = n;\n}",
+    "python": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.next = None\n        self.prev = None  # ponteiro extra!\n\nclass DoublyLinkedList:\n    def __init__(self):\n        self.head = None\n        self.tail = None\n\n    def insert_end(self, value):  # O(1) graças ao TAIL\n        n = Node(value)\n        if self.tail:\n            n.prev = self.tail\n            self.tail.next = n\n        else:\n            self.head = n\n        self.tail = n",
+    "javascript": "class Node {\n    constructor(value) {\n        this.value = value;\n        this.next = null;\n        this.prev = null;  // ponteiro extra!\n    }\n}\n\nclass DoublyLinkedList {\n    constructor() { this.head = null; this.tail = null; }\n\n    insertEnd(value) {  // O(1) graças ao TAIL\n        const n = new Node(value);\n        if (this.tail) {\n            n.prev = this.tail;\n            this.tail.next = n;\n        } else {\n            this.head = n;\n        }\n        this.tail = n;\n    }\n}"
+  }
+}

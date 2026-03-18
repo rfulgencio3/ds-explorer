@@ -1,0 +1,236 @@
+{{template "base" .}}
+
+{{define "title"}}DS Explorer — Estrutura{{end}}
+
+{{define "content"}}
+<div class="structure-page" data-structure-id="{{.ID}}">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="/">Estruturas</a>
+    <span class="breadcrumb-sep">/</span>
+    <span id="struct-name-breadcrumb">Carregando...</span>
+  </nav>
+
+  <div class="structure-layout">
+
+    <!-- ===== COLUNA ESQUERDA: Controles ===== -->
+    <aside class="controls-panel">
+
+      <section class="control-section">
+        <h3 class="control-label">Configuração inicial</h3>
+        <div class="control-row">
+          <label for="input-size" class="label">Tamanho</label>
+          <input id="input-size" type="number" min="2" max="12" value="6" class="input input--number">
+          <button id="btn-generate" class="btn btn--primary">Gerar</button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <h3 class="control-label">Operação</h3>
+        <select id="select-operation" class="select">
+          <optgroup label="Inserir">
+            <option value="insertBegin">Inserir no início</option>
+            <option value="insertEnd">Inserir no fim</option>
+            <option value="insertAt">Inserir na posição</option>
+          </optgroup>
+          <optgroup label="Remover">
+            <option value="removeBegin">Remover do início</option>
+            <option value="removeEnd">Remover do fim</option>
+            <option value="removeAt">Remover na posição</option>
+            <option value="removeByValue">Remover por valor</option>
+          </optgroup>
+          <optgroup label="Outras">
+            <option value="search">Buscar por valor</option>
+            <option value="update">Atualizar</option>
+          </optgroup>
+        </select>
+
+        <!-- Campos dinâmicos de acordo com a operação -->
+        <div id="op-fields" class="op-fields">
+          <div class="control-row" id="field-value" style="display:none">
+            <label class="label">Valor</label>
+            <input id="input-value" type="number" class="input input--number" placeholder="valor">
+          </div>
+          <div class="control-row" id="field-index" style="display:none">
+            <label class="label">Posição</label>
+            <input id="input-index" type="number" min="0" class="input input--number" placeholder="índice">
+          </div>
+          <div class="control-row" id="field-new-value" style="display:none">
+            <label class="label">Novo valor</label>
+            <input id="input-new-value" type="number" class="input input--number" placeholder="novo valor">
+          </div>
+        </div>
+
+        <button id="btn-execute" class="btn btn--accent" style="width:100%;margin-top:0.5rem">
+          Executar
+        </button>
+      </section>
+
+      <section class="control-section">
+        <h3 class="control-label">Animação</h3>
+        <div class="anim-controls">
+          <button id="btn-prev"    class="btn btn--icon" title="Passo anterior">&#9664;</button>
+          <button id="btn-next"    class="btn btn--icon" title="Próximo passo">&#9654;</button>
+          <button id="btn-play"    class="btn btn--icon" title="Play automático">&#9654;&#9654;</button>
+          <button id="btn-restart" class="btn btn--icon" title="Reiniciar">&#8634;</button>
+        </div>
+        <div class="speed-row">
+          <span class="label">Velocidade</span>
+          <input id="slider-speed" type="range" min="1" max="3" value="2" class="slider">
+          <span id="speed-label" class="label">Médio</span>
+        </div>
+      </section>
+
+      <!-- Log de passos -->
+      <section class="control-section log-section">
+        <h3 class="control-label">Log de passos</h3>
+        <div id="step-log" class="step-log">
+          <p class="log-hint">Gere uma estrutura e execute uma operação para ver os passos.</p>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ===== COLUNA DIREITA: Visualização ===== -->
+    <section class="viz-panel">
+      <div class="viz-area" id="viz-area">
+        <svg id="viz-svg" width="100%" height="300"></svg>
+      </div>
+
+      <!-- ===== PAINEL DE MEMÓRIA ===== -->
+      <div class="memory-panel">
+        <div class="memory-panel-header">
+          <span class="memory-panel-title">Memória</span>
+          <span class="memory-panel-badge-sim">simulado</span>
+        </div>
+
+        <div class="memory-metrics">
+          <div class="mem-metric">
+            <span class="mem-metric-label">Alocação</span>
+            <span class="mem-metric-value" id="mem-alloc-type">—</span>
+          </div>
+          <div class="mem-metric">
+            <span class="mem-metric-label" id="mem-elem-label">Por elemento</span>
+            <span class="mem-metric-value" id="mem-bytes-elem">—</span>
+          </div>
+          <div class="mem-metric">
+            <span class="mem-metric-label">Total alocado</span>
+            <span class="mem-metric-value" id="mem-total">—</span>
+          </div>
+          <div class="mem-metric">
+            <span class="mem-metric-label">Cache line</span>
+            <span class="mem-metric-value" id="mem-cache-line">—</span>
+          </div>
+        </div>
+
+        <div class="memory-access-row">
+          <div class="mem-metric">
+            <span class="mem-metric-label">Cache</span>
+            <span class="mem-badge" id="mem-cache-event">—</span>
+          </div>
+          <div class="mem-metric">
+            <span class="mem-metric-label">Ciclos est.</span>
+            <span class="mem-metric-value mem-metric-value--mono" id="mem-cycles">—</span>
+          </div>
+          <div class="mem-note" id="mem-note"></div>
+        </div>
+
+        <div class="memory-layout-section">
+          <span class="mem-layout-label">Chunks na memória</span>
+          <div class="mem-layout-scroll">
+            <div id="mem-layout-blocks" class="mem-layout-blocks"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seções informativas colapsáveis -->
+      <div class="info-sections">
+
+        <!-- Complexidade Big-O -->
+        <details class="info-block" open>
+          <summary class="info-block-title">Complexidade (Big-O)</summary>
+          <div class="info-block-body">
+            <table class="complexity-table" id="complexity-table">
+              <thead>
+                <tr>
+                  <th>Operação</th>
+                  <th>Melhor</th>
+                  <th>Médio</th>
+                  <th>Pior</th>
+                </tr>
+              </thead>
+              <tbody id="complexity-body">
+                <tr><td colspan="4" class="loading-cell">Carregando...</td></tr>
+              </tbody>
+            </table>
+            <p class="space-complexity">Espaço: <span id="space-complexity">—</span></p>
+          </div>
+        </details>
+
+        <!-- Quando usar -->
+        <details class="info-block">
+          <summary class="info-block-title">Quando usar esta estrutura</summary>
+          <div class="info-block-body use-cases-body">
+            <div class="use-col">
+              <h4 class="use-col-title use-col-title--yes">&#10003; Recomendado quando</h4>
+              <ul id="list-recommended" class="use-list"></ul>
+            </div>
+            <div class="use-col">
+              <h4 class="use-col-title use-col-title--no">&#10007; Evitar quando</h4>
+              <ul id="list-not-recommended" class="use-list"></ul>
+            </div>
+            <div class="use-col use-col--full">
+              <h4 class="use-col-title">Exemplos reais</h4>
+              <ul id="list-examples" class="use-list use-list--examples"></ul>
+            </div>
+          </div>
+        </details>
+
+        <!-- Como implementar -->
+        <details class="info-block">
+          <summary class="info-block-title">Como implementar</summary>
+          <div class="info-block-body">
+            <div class="code-tabs">
+              <button class="tab-btn tab-btn--active" data-lang="csharp">C#</button>
+              <button class="tab-btn" data-lang="python">Python</button>
+              <button class="tab-btn" data-lang="javascript">JavaScript</button>
+            </div>
+            <pre id="code-snippet" class="code-snippet"><code id="code-content">Carregando...</code></pre>
+          </div>
+        </details>
+
+      </div><!-- /info-sections -->
+    </section><!-- /viz-panel -->
+  </div><!-- /structure-layout -->
+</div>
+
+<!-- Dados embutidos pelo servidor -->
+<script>
+  window.__STRUCTURE_DATA__ = {{.Payload}};
+  window.__STRUCTURE_ID__   = "{{.ID}}";
+</script>
+
+<!-- Core -->
+<script src="/static/js/core/renderer.js"></script>
+<script src="/static/js/core/memory-panel.js"></script>
+<script src="/static/js/core/animator.js"></script>
+
+<!-- Estrutura específica (carregada dinamicamente) -->
+<script>
+(function() {
+  const id = window.__STRUCTURE_ID__;
+  const script = document.createElement('script');
+  // Mapeia o id da rota para o arquivo JS correto
+  const jsMap = {
+    'array':              'array',
+    'singly-linked-list': 'singly',
+    'doubly-linked-list': 'doubly',
+  };
+  const jsFile = jsMap[id] || id;
+  script.src = `/static/js/structures/${jsFile}.js`;
+  script.onload = () => initStructurePage();
+  document.body.appendChild(script);
+})();
+</script>
+{{end}}

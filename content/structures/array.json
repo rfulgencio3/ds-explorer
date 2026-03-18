@@ -1,0 +1,39 @@
+{
+  "id": "array",
+  "name": "Array Estático",
+  "category": "Linear",
+  "description": "Um array estático armazena elementos em posições contíguas de memória com tamanho fixo definido na criação. O acesso por índice é instantâneo (O(1)), mas inserções e remoções no meio exigem deslocamento de elementos.",
+  "complexity": {
+    "access":        { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":   { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "insertEnd":     { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "insertMiddle":  { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "delete":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "space":         "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Acesso frequente por índice (ex: pixels de imagem)",
+      "Tamanho conhecido e fixo dos dados",
+      "Operações majoritariamente de leitura",
+      "Cache de dados com localidade de memória importante"
+    ],
+    "notRecommended": [
+      "Inserções/remoções frequentes no início ou meio",
+      "Tamanho dos dados desconhecido ou muito variável",
+      "Dados esparsos onde muitas posições ficam vazias"
+    ],
+    "realWorldExamples": [
+      "Buffer de áudio/vídeo (frames sequenciais)",
+      "Tabela de notas de alunos (tamanho fixo por turma)",
+      "Matriz de pixels de uma imagem bitmap",
+      "Lookup table de valores pré-calculados"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "// Declaração e acesso\nint[] arr = new int[5];\narr[0] = 10;\narr[1] = 20;\n\n// Inserção com shift (manual)\nvoid InsertAt(int[] arr, ref int size, int index, int value) {\n    for (int i = size; i > index; i--)\n        arr[i] = arr[i - 1];  // desloca para direita\n    arr[index] = value;\n    size++;\n}",
+    "python": "# Arrays em Python usam listas\narr = [0] * 5  # tamanho fixo (convencional)\narr[0] = 10\n\n# Inserção com shift (manual para simular array estático)\ndef insert_at(arr, size, index, value):\n    for i in range(size, index, -1):\n        arr[i] = arr[i - 1]  # desloca para direita\n    arr[index] = value\n    return size + 1",
+    "javascript": "// Array de tamanho fixo\nconst arr = new Array(5).fill(0);\narr[0] = 10;\n\n// Inserção com shift\nfunction insertAt(arr, size, index, value) {\n    for (let i = size; i > index; i--)\n        arr[i] = arr[i - 1];  // desloca para direita\n    arr[index] = value;\n    return size + 1;\n}"
+  }
+}

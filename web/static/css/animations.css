@@ -1,0 +1,149 @@
+/* ===== NODE TRANSITION ANIMATIONS ===== */
+
+/* All SVG node rects and text transition smoothly between states.
+   These transitions fire because renderer.js keeps elements persistent
+   across steps — only the CSS class changes, not the element itself. */
+.node-rect {
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.node-text {
+  transition: fill 0.3s ease;
+}
+
+/* Inner group that receives scale animations (appear / disappear).
+   transform-box: fill-box makes transform-origin relative to the
+   element's own bounding box, so scale(0) collapses to the node centre. */
+.node-content {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Node appearing (insert animation) */
+@keyframes nodeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.node-appear {
+  animation: nodeAppear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Node disappearing (remove animation) */
+@keyframes nodeDisappear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+.node-disappear {
+  animation: nodeDisappear 0.3s ease-in forwards;
+}
+
+/* Node shifting (array shift animation) */
+@keyframes nodeShiftRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--shift-dx, 64px)); }
+}
+
+@keyframes nodeShiftLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--shift-dx, -64px)); }
+}
+
+.node-shift-right {
+  animation: nodeShiftRight 0.4s ease-in-out forwards;
+  transform-box: fill-box;
+}
+
+.node-shift-left {
+  animation: nodeShiftLeft 0.4s ease-in-out forwards;
+  transform-box: fill-box;
+}
+
+/* Arrow update (pointer redirect) */
+@keyframes arrowPulse {
+  0%   { opacity: 1; stroke-width: 1.5; }
+  50%  { opacity: 0.3; stroke-width: 3; }
+  100% { opacity: 1; stroke-width: 1.5; }
+}
+
+.arrow-pulse {
+  animation: arrowPulse 0.5s ease-in-out;
+}
+
+/* Highlight glow on found/success node */
+@keyframes nodeGlow {
+  0%   { filter: drop-shadow(0 0 0px transparent); }
+  50%  { filter: drop-shadow(0 0 8px var(--color-success)); }
+  100% { filter: drop-shadow(0 0 4px var(--color-success)); }
+}
+
+.node-glow {
+  animation: nodeGlow 0.6s ease forwards;
+}
+
+/* Shake on not-found */
+@keyframes nodeShake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-5px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+.node-shake {
+  animation: nodeShake 0.5s ease;
+  transform-box: fill-box;
+}
+
+/* Pointer label appear */
+@keyframes labelFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pointer-label {
+  animation: labelFadeIn 0.3s ease forwards;
+}
+
+/* Step log entry appear */
+@keyframes logEntryIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.log-step {
+  animation: logEntryIn 0.2s ease forwards;
+}
+
+/* Play button pulse when auto-playing */
+@keyframes playPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(79, 142, 247, 0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(79, 142, 247, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 142, 247, 0); }
+}
+
+#btn-play.is-playing {
+  animation: playPulse 1.2s infinite;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Speed slider label transition */
+#speed-label {
+  transition: color 0.2s;
+  min-width: 48px;
+}
