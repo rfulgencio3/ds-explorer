@@ -33,6 +33,7 @@
   },
   "codeSnippets": {
     "csharp": "// Declaração e acesso\nint[] arr = new int[5];\narr[0] = 10;\narr[1] = 20;\n\n// Inserção com shift (manual)\nvoid InsertAt(int[] arr, ref int size, int index, int value) {\n    for (int i = size; i > index; i--)\n        arr[i] = arr[i - 1];  // desloca para direita\n    arr[index] = value;\n    size++;\n}",
+    "go": "// Array estático em Go\nvar arr [5]int\narr[0] = 10\narr[1] = 20\n\n// Inserção manual com shift dentro da área útil\nfunc insertAt(arr *[6]int, size *int, index, value int) {\n\tfor i := *size; i > index; i-- {\n\t\tarr[i] = arr[i-1]\n\t}\n\tarr[index] = value\n\t*size = *size + 1\n}",
     "python": "# Arrays em Python usam listas\narr = [0] * 5  # tamanho fixo (convencional)\narr[0] = 10\n\n# Inserção com shift (manual para simular array estático)\ndef insert_at(arr, size, index, value):\n    for i in range(size, index, -1):\n        arr[i] = arr[i - 1]  # desloca para direita\n    arr[index] = value\n    return size + 1",
     "javascript": "// Array de tamanho fixo\nconst arr = new Array(5).fill(0);\narr[0] = 10;\n\n// Inserção com shift\nfunction insertAt(arr, size, index, value) {\n    for (let i = size; i > index; i--)\n        arr[i] = arr[i - 1];  // desloca para direita\n    arr[index] = value;\n    return size + 1;\n}"
   }

@@ -33,6 +33,7 @@
   },
   "codeSnippets": {
     "csharp": "// List<T> usa um array interno com capacidade dinâmica\nvar list = new List<int> { 10, 20, 30 };\nlist.Add(40);          // append amortizado O(1)\nlist.Insert(1, 15);    // desloca elementos\nlist[2] = 99;          // acesso por índice O(1)\n",
+    "go": "// slices em Go funcionam como listas dinâmicas\nlist := []int{10, 20, 30}\nlist = append(list, 40) // append amortizado O(1)\n\nindex := 1\nvalue := 15\nlist = append(list, 0)           // abre espaço no fim\ncopy(list[index+1:], list[index:])\nlist[index] = value\n\nlist[2] = 99 // acesso por índice O(1)\n",
     "python": "# list do Python também é um array dinâmico\narr = [10, 20, 30]\narr.append(40)      # append amortizado O(1)\narr.insert(1, 15)   # desloca elementos\narr[2] = 99         # acesso por índice O(1)\n",
     "javascript": "// Arrays em JS funcionam como listas dinâmicas\nconst list = [10, 20, 30];\nlist.push(40);        // append amortizado O(1)\nlist.splice(1, 0, 15);\nlist[2] = 99;\n"
   }

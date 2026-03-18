@@ -34,6 +34,7 @@
   },
   "codeSnippets": {
     "csharp": "// Definição do nó\nclass Node {\n    public int Value;\n    public Node Next;\n    public Node(int value) { Value = value; }\n}\n\n// Inserção no início — O(1)\nvoid InsertBegin(ref Node head, int value) {\n    Node newNode = new Node(value);\n    newNode.Next = head;  // aponta para o antigo HEAD\n    head = newNode;       // HEAD passa a ser o novo nó\n}",
+    "go": "type Node struct {\n\tValue int\n\tNext  *Node\n}\n\nfunc insertBegin(head **Node, value int) {\n\tnewNode := &Node{Value: value}\n\tnewNode.Next = *head // aponta para o antigo HEAD\n\t*head = newNode      // HEAD passa a ser o novo nó\n}",
     "python": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.next = None  # ponteiro para o próximo nó\n\nclass SinglyLinkedList:\n    def __init__(self):\n        self.head = None\n\n    def insert_begin(self, value):\n        new_node = Node(value)\n        new_node.next = self.head  # aponta para o antigo HEAD\n        self.head = new_node       # HEAD passa a ser o novo nó",
     "javascript": "class Node {\n    constructor(value) {\n        this.value = value;\n        this.next = null;  // ponteiro para o próximo nó\n    }\n}\n\nclass SinglyLinkedList {\n    constructor() { this.head = null; }\n\n    insertBegin(value) {\n        const node = new Node(value);\n        node.next = this.head;  // aponta para o antigo HEAD\n        this.head = node;       // HEAD passa a ser o novo nó\n    }\n}"
   }
