@@ -95,8 +95,20 @@ func main() {
 	mux.HandleFunc("GET /api/structures", handleAPIStructures)
 	mux.HandleFunc("GET /api/structure/{id}", handleAPIStructure)
 
-	log.Println("ds-explorer listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	addr := serverAddr()
+	log.Printf("ds-explorer listening on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, mux))
+}
+
+func serverAddr() string {
+	port := strings.TrimSpace(os.Getenv("PORT"))
+	if port == "" {
+		port = "8080"
+	}
+	if strings.HasPrefix(port, ":") {
+		return port
+	}
+	return ":" + port
 }
 
 func loadTemplates() (map[string]*template.Template, error) {
