@@ -26,6 +26,7 @@
     {{if .Available}}
     <a href="/structure/{{.ID}}" class="card card--available">
       <div class="card-category">{{.Category}}</div>
+      {{if .Subtype}}<p class="card-subtype">{{.Subtype}}</p>{{end}}
       <h2 class="card-name">{{.Name}}</h2>
       <p class="card-name-en">{{.EnglishName}}</p>
       <div class="card-metrics">
@@ -49,6 +50,7 @@
     {{else}}
     <div class="card card--soon">
       <div class="card-category">{{.Category}}</div>
+      {{if .Subtype}}<p class="card-subtype">{{.Subtype}}</p>{{end}}
       <h2 class="card-name">{{.Name}}</h2>
       <p class="card-name-en">{{.EnglishName}}</p>
       <div class="card-metrics">

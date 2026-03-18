@@ -21,6 +21,7 @@ type Structure struct {
 	Name        string `json:"name"`
 	EnglishName string `json:"englishName"`
 	Category    string `json:"category"`
+	Subtype     string `json:"subtype"`
 	Description string `json:"description"`
 	SearchBig0  string `json:"searchBigO"` // summary for the card
 	InsertBig0  string `json:"insertBigO"`
@@ -36,15 +37,15 @@ type navGroup struct {
 // registry lists every structure the application knows about.
 // To add a new structure: append an entry here, create the JSON file and JS file.
 var registry = []Structure{
-	{ID: "array", Name: "Array Estático", EnglishName: "Static Array", Category: "Linear", SearchBig0: "O(n)", InsertBig0: "O(n)", UpdateBig0: "O(1)", Available: true},
-	{ID: "singly-linked-list", Name: "Lista Encadeada Simples", EnglishName: "Singly Linked List", Category: "Linear Encadeada", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: true},
-	{ID: "doubly-linked-list", Name: "Lista Encadeada Dupla", EnglishName: "Doubly Linked List", Category: "Linear Encadeada", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: true},
-	{ID: "circular-list", Name: "Lista Circular", EnglishName: "Circular Linked List", Category: "Linear Encadeada", SearchBig0: "O(n)", InsertBig0: "O(n)", UpdateBig0: "O(n)", Available: true},
+	{ID: "array", Name: "Array Estático", EnglishName: "Static Array", Category: "Linear", Subtype: "Sequencial", SearchBig0: "O(n)", InsertBig0: "O(n)", UpdateBig0: "O(1)", Available: true},
+	{ID: "singly-linked-list", Name: "Lista Encadeada Simples", EnglishName: "Singly Linked List", Category: "Linear", Subtype: "Encadeada", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: true},
+	{ID: "doubly-linked-list", Name: "Lista Encadeada Dupla", EnglishName: "Doubly Linked List", Category: "Linear", Subtype: "Encadeada", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: true},
+	{ID: "circular-list", Name: "Lista Circular", EnglishName: "Circular Linked List", Category: "Linear", Subtype: "Encadeada", SearchBig0: "O(n)", InsertBig0: "O(n)", UpdateBig0: "O(n)", Available: true},
 	// Future structures - set Available: false until implemented
-	{ID: "stack", Name: "Pilha (Stack)", EnglishName: "Stack", Category: "Linear", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
-	{ID: "queue", Name: "Fila (Queue)", EnglishName: "Queue", Category: "Linear", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
-	{ID: "circular-queue", Name: "Fila Circular", EnglishName: "Circular Queue", Category: "Linear", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
-	{ID: "deque", Name: "Deque", EnglishName: "Deque", Category: "Linear", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
+	{ID: "stack", Name: "Pilha (Stack)", EnglishName: "Stack", Category: "Linear", Subtype: "Restrita", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
+	{ID: "queue", Name: "Fila (Queue)", EnglishName: "Queue", Category: "Linear", Subtype: "Restrita", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
+	{ID: "circular-queue", Name: "Fila Circular", EnglishName: "Circular Queue", Category: "Linear", Subtype: "Restrita", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
+	{ID: "deque", Name: "Deque", EnglishName: "Deque", Category: "Linear", Subtype: "Restrita", SearchBig0: "O(n)", InsertBig0: "O(1)", UpdateBig0: "O(n)", Available: false},
 	{ID: "binary-search-tree", Name: "Árvore Binária de Busca", EnglishName: "Binary Search Tree", Category: "Árvore", SearchBig0: "O(log n)", InsertBig0: "O(log n)", UpdateBig0: "O(log n)", Available: false},
 	{ID: "avl-tree", Name: "Árvore AVL", EnglishName: "AVL Tree", Category: "Árvore", SearchBig0: "O(log n)", InsertBig0: "O(log n)", UpdateBig0: "O(log n)", Available: false},
 	{ID: "heap", Name: "Heap (Min/Max)", EnglishName: "Heap", Category: "Árvore", SearchBig0: "O(n)", InsertBig0: "O(log n)", UpdateBig0: "O(log n)", Available: false},
@@ -78,8 +79,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Static files
-	fs := http.FileServer(http.Dir("web/static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	fileServer := http.FileServer(http.Dir("web/static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
 	// Dev utilities
 	if devLiveReload {
