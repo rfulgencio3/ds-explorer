@@ -319,7 +319,14 @@
 .mem-layout-scroll {
   overflow-x: auto;
   padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg);
 }
+
+.mem-layout-scroll::-webkit-scrollbar        { height: 6px; }
+.mem-layout-scroll::-webkit-scrollbar-track  { background: var(--color-bg); border-radius: 3px; }
+.mem-layout-scroll::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+.mem-layout-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 
 .mem-layout-blocks {
   display: flex;
