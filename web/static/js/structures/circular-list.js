@@ -29,34 +29,15 @@ function initStructurePage() {
   const inputIndex  = document.getElementById('input-index');
   const inputNewVal = document.getElementById('input-new-value');
 
-  const fieldMap = {
-    insertBegin:    ['value'],
-    insertEnd:      ['value'],
-    insertAt:       ['value', 'index'],
-    removeBegin:    [],
-    removeEnd:      [],
-    removeAt:       ['index'],
-    removeByValue:  ['value'],
-    search:         ['value'],
-    update:         ['index', 'newValue'],
-  };
+  const fieldMap = StructureUI.DEFAULT_FIELD_MAP;
 
   function _syncFields() {
-    const fields = fieldMap[selectOp.value] || [];
-    fieldValue.style.display  = fields.includes('value')    ? 'flex' : 'none';
-    fieldIndex.style.display  = fields.includes('index')    ? 'flex' : 'none';
-    fieldNewVal.style.display = fields.includes('newValue') ? 'flex' : 'none';
+    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
   }
   selectOp.addEventListener('change', _syncFields);
   _syncFields();
 
-  if (meta) {
-    document.getElementById('struct-name-breadcrumb').textContent = meta.name || 'Lista Circular';
-    document.title = `ds-explorer — ${meta.name}`;
-    _populateComplexity(meta.complexity);
-    _populateUseCases(meta.useCases);
-    _populateSnippets(meta.codeSnippets);
-  }
+  StructureUI.initMeta(meta, 'Lista Circular');
 
   MemoryPanel.init('singly');  // mesmos parâmetros de memória que lista simples
 
@@ -466,45 +447,4 @@ function initStructurePage() {
     return { type: 'circular', nodes: allNodes, pointers: { HEAD: allNodes[0]?.id } };
   }
 
-  // ── Metadata ───────────────────────────────────────────────────────────
-
-  function _populateComplexity(c) {
-    if (!c) return;
-    const tbody = document.getElementById('complexity-body');
-    const rows = [
-      ['Acesso',          c.access],
-      ['Busca',           c.search],
-      ['Inserção início', c.insertBegin],
-      ['Inserção fim',    c.insertEnd],
-      ['Inserção meio',   c.insertMiddle],
-      ['Remoção',         c.delete],
-    ];
-    tbody.innerHTML = rows.map(([name, obj]) => obj ? `
-      <tr><td>${name}</td><td>${obj.best}</td><td>${obj.average}</td><td>${obj.worst}</td></tr>` : '').join('');
-    const spaceEl = document.getElementById('space-complexity');
-    if (spaceEl && c.space) spaceEl.textContent = c.space;
-  }
-
-  function _populateUseCases(u) {
-    if (!u) return;
-    const fill = (id, items) => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
-    };
-    fill('list-recommended',     u.recommended);
-    fill('list-not-recommended', u.notRecommended);
-    fill('list-examples',        u.realWorldExamples);
-  }
-
-  function _populateSnippets(snippets) {
-    if (!snippets) return;
-    const tabs   = document.querySelectorAll('.tab-btn');
-    const codeEl = document.getElementById('code-content');
-    function _show(lang) {
-      codeEl.textContent = snippets[lang] || '// Snippet não disponível';
-      tabs.forEach(t => t.classList.toggle('tab-btn--active', t.dataset.lang === lang));
-    }
-    tabs.forEach(t => t.addEventListener('click', () => _show(t.dataset.lang)));
-    _show('csharp');
-  }
 }
