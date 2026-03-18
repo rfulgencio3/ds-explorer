@@ -1,0 +1,86 @@
+{{template "base" .}}
+
+{{define "title"}}ds-explorer — Referencias Tecnicas{{end}}
+
+{{define "content"}}
+<section class="references-hero">
+  <p class="references-kicker">// Base de consulta por taxonomia</p>
+  <h1 class="references-title">Referencias tecnicas das estruturas</h1>
+  <p class="references-subtitle">
+    Documentacao resumida para cada estrutura do projeto, com foco em classificacao, implementacao,
+    cenarios de uso e um link tecnico externo para aprofundamento.
+  </p>
+</section>
+
+{{range navGroups}}
+<section class="references-section">
+  <div class="references-section-head">
+    <p class="references-section-kicker">Categoria</p>
+    <h2 class="references-section-title">{{.Category}}</h2>
+  </div>
+
+  <div class="references-grid">
+    {{range .Items}}
+    <article class="reference-card" id="ref-{{.ID}}">
+      <div class="reference-card-top">
+        <div>
+          <p class="reference-category">{{.Category}}</p>
+          {{if .Subtype}}<p class="reference-subtype">{{.Subtype}}</p>{{end}}
+        </div>
+        {{if .Available}}
+        <span class="reference-status reference-status--available">Disponivel</span>
+        {{else}}
+        <span class="reference-status reference-status--soon">Em breve</span>
+        {{end}}
+      </div>
+
+      <h3 class="reference-name">{{.Name}}</h3>
+      <p class="reference-name-en">{{.EnglishName}}</p>
+
+      <dl class="reference-meta">
+        <div class="reference-meta-row">
+          <dt>C#</dt>
+          <dd>{{.DotNetName}}</dd>
+        </div>
+        <div class="reference-meta-row">
+          <dt>Implementacao</dt>
+          <dd>{{.Implementation}}</dd>
+        </div>
+      </dl>
+
+      <div class="reference-copy">
+        <p><strong>Resumo:</strong> {{.Description}}</p>
+        <p><strong>Quando usar:</strong> {{.UseCases}}</p>
+        <p><strong>Pontos de atencao:</strong> {{.Tradeoffs}}</p>
+      </div>
+
+      <div class="reference-metrics">
+        <div class="card-meta">
+          <span class="card-meta-label">Busca</span>
+          <span class="card-complexity {{complexityClass .SearchBig0}}" title="{{complexityTooltip .SearchBig0}}">{{.SearchBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Insercao</span>
+          <span class="card-complexity {{complexityClass .InsertBig0}}" title="{{complexityTooltip .InsertBig0}}">{{.InsertBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Alteracao</span>
+          <span class="card-complexity {{complexityClass .UpdateBig0}}" title="{{complexityTooltip .UpdateBig0}}">{{.UpdateBig0}}</span>
+        </div>
+      </div>
+
+      <div class="reference-actions">
+        <a href="{{.ReferenceURL}}" class="btn btn--sm" target="_blank" rel="noopener noreferrer">
+          Referencia tecnica
+        </a>
+        <span class="reference-source">{{.ReferenceSource}}</span>
+        {{if .Available}}
+        <a href="/structure/{{.ID}}" class="reference-internal-link">Abrir visualizacao</a>
+        {{end}}
+      </div>
+    </article>
+    {{end}}
+  </div>
+</section>
+{{end}}
+{{end}}

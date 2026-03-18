@@ -41,6 +41,7 @@
             {{end}}
           </div>
         </div>
+        <a href="/references" class="nav-link">Referencias</a>
         <a href="/compare" class="nav-link nav-link--disabled" title="Em breve">Comparar</a>
       </nav>
     </div>
@@ -63,6 +64,11 @@
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.pathname;
+    document.querySelectorAll('.site-nav > a.nav-link').forEach((link) => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('nav-link--active');
+      }
+    });
     document.querySelectorAll('#structures-dropdown a.nav-dropdown-item').forEach((link) => {
       if (link.getAttribute('href') === currentPath) {
         link.classList.add('nav-dropdown-item--active');
