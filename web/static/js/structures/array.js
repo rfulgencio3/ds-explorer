@@ -12,6 +12,7 @@ function initStructurePage() {
   // ── Constantes de memória ──────────────────────────────────────────────
   // Array de int32: 4 bytes por elemento, alocação contígua.
   // Cache line = 64 bytes → 16 elementos int32 por cache line.
+  const MAX_SIZE       = 30;
   const BYTES_PER_ELEM = 4;
   const ELEMS_PER_LINE = 16;   // 64 B / 4 B
   const BASE_ADDR      = 0x1000;
@@ -67,7 +68,7 @@ function initStructurePage() {
 
   // ── Generate ───────────────────────────────────────────────────────────
   btnGenerate.addEventListener('click', () => {
-    const size = Math.min(12, Math.max(2, parseInt(inputSize.value) || 6));
+    const size = Math.min(MAX_SIZE, Math.max(2, parseInt(inputSize.value) || 6));
     data = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 1);
     _prevCacheLine = -1;
     Animator.load([{
@@ -174,6 +175,7 @@ function initStructurePage() {
 
     if (isNaN(val))  { alert('Informe um valor.'); return []; }
     if (isNaN(idx) || idx < 0 || idx > arr.length) { alert('Índice inválido.'); return []; }
+    if (arr.length >= MAX_SIZE) { alert(`O array suporta no máximo ${MAX_SIZE} elementos.`); return []; }
 
     steps.push({
       description: `Inserir ${val} na posição ${idx}. Array tem ${arr.length} elementos.`,

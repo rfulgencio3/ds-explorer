@@ -116,7 +116,7 @@ function initStructurePage() {
   // ── Generate ─────────────────────────────────────────────────────────
 
   btnGenerate.addEventListener('click', () => {
-    const size = Math.min(8, Math.max(2, parseInt(inputSize.value) || 5));
+    const size = Math.min(30, Math.max(2, parseInt(inputSize.value) || 5));
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
     _prevAccessedId = -1;
     Animator.load([{
