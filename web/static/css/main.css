@@ -387,6 +387,15 @@ a:hover { text-decoration: underline; }
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  text-decoration: none;
+}
+
+.card--available:hover .card-name,
+.card--available:hover .card-name-en {
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary);
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1px;
 }
 
 .card--soon {
