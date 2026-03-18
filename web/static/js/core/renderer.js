@@ -8,7 +8,7 @@
  *
  * Snapshot format expected by draw():
  * {
- *   type: 'array' | 'singly' | 'doubly',
+ *   type: 'array' | 'singly' | 'doubly' | 'circular',
  *   nodes: [{ id, value, state }],   // state: 'neutral'|'visiting'|'success'|'danger'|'warning'
  *   pointers: { HEAD: <nodeId>, TAIL: <nodeId> }
  * }
@@ -22,6 +22,40 @@ const Renderer = (() => {
   const START_Y = 120;
 
   const svg = document.getElementById('viz-svg');
+
+  // ── Type strategies ────────────────────────────────────────────────────────
+  // To support a new structure type: add one entry here.
+  // No other function in this module needs to be modified.
+  const _typeStrategies = {
+    array: {
+      drawArrows:    null,
+      typeLabel:     ()      => ({ text: 'int32', x: NODE_W / 2, y: -22 }),
+      showIndex:     true,
+      pointerLabels: [],
+    },
+    singly: {
+      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
+      showIndex:     false,
+      pointerLabels: ['head'],
+    },
+    doubly: {
+      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      typeLabel:     ()      => ({ text: 'dbl*',  x: 4, y: 9 }),
+      showIndex:     false,
+      pointerLabels: ['head', 'tail'],
+    },
+    circular: {
+      drawArrows:    (snap, pos, nds) => _drawCircularArrows(pos, nds),
+      typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
+      showIndex:     false,
+      pointerLabels: ['head'],
+    },
+  };
+
+  function _getStrategy(type) {
+    return _typeStrategies[type] || _typeStrategies.singly;
+  }
 
   // Persistent map: nodeId → { group, content, rect, valueText, indexLabel }
   let _nodeMap     = new Map();
@@ -134,21 +168,17 @@ const Renderer = (() => {
     let indexLabel  = null;
     let typeLabel   = null;
 
-    if (type === 'array') {
+    const strategy = _getStrategy(type);
+    const tl = strategy.typeLabel(index);
+    typeLabel = _el('text', { x: tl.x, y: tl.y, class: 'node-type-label' });
+    typeLabel.textContent = tl.text;
+    content.appendChild(typeLabel);
+
+    if (strategy.showIndex) {
       // Index in [i] bracket notation — looks like array access syntax
       indexLabel = _el('text', { x: NODE_W / 2, y: -10, class: 'node-index' });
       indexLabel.textContent = `[${index}]`;
       content.appendChild(indexLabel);
-
-      // Type annotation — small "int32" above index, code-editor style
-      typeLabel = _el('text', { x: NODE_W / 2, y: -22, class: 'node-type-label' });
-      typeLabel.textContent = 'int32';
-      content.appendChild(typeLabel);
-    } else {
-      // Linked-list nodes: tiny "node*" type annotation at top-left of rect
-      typeLabel = _el('text', { x: 4, y: 9, class: 'node-type-label' });
-      typeLabel.textContent = type === 'doubly' ? 'dbl*' : 'node*';
-      content.appendChild(typeLabel);
     }
 
     group.appendChild(content);
@@ -174,7 +204,7 @@ const Renderer = (() => {
 
     els.valueText.textContent = node.value ?? '';
 
-    if (type === 'array' && els.indexLabel) {
+    if (_getStrategy(type).showIndex && els.indexLabel) {
       els.indexLabel.textContent = `[${index}]`;
     }
   }
@@ -240,12 +270,9 @@ const Renderer = (() => {
     _arrowLayer.innerHTML = '';
     _labelLayer.innerHTML = '';
 
-    if (type === 'circular') {
-      _drawCircularArrows(positions, nodes);
-    } else if (type !== 'array') {
-      _drawLinkedListArrows(snapshot, positions, nodes);
-    }
-    _drawPointerLabels(positions, nodes, type);
+    const strategy = _getStrategy(type);
+    if (strategy.drawArrows) strategy.drawArrows(snapshot, positions, nodes);
+    _drawPointerLabels(positions, nodes, strategy);
   }
 
   // ── Arrow drawing ──────────────────────────────────────────────────────────
@@ -345,13 +372,14 @@ const Renderer = (() => {
     _arrowLayer.appendChild(label);
   }
 
-  function _drawPointerLabels(positions, nodes, type) {
-    if (type === 'array' || nodes.length === 0) return;
+  function _drawPointerLabels(positions, nodes, strategy) {
+    if (nodes.length === 0 || strategy.pointerLabels.length === 0) return;
 
     // Lowercase style — matches coding convention (variable names, not constants)
-    _drawPointerLabel('head', positions[0].x, positions[0].y);
-
-    if (type === 'doubly') {
+    if (strategy.pointerLabels.includes('head')) {
+      _drawPointerLabel('head', positions[0].x, positions[0].y);
+    }
+    if (strategy.pointerLabels.includes('tail')) {
       _drawPointerLabel('tail', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
     }
   }
