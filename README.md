@@ -1,13 +1,25 @@
 # DS Explorer
 
-Aplicação web educacional interativa para visualização de estruturas de dados e algoritmos, destinada a alunos de graduação em Estrutura de Dados.
+Projeto educacional open-source para visualização interativa de estruturas de dados, notação assintótica e comportamento de memória.
+
+O foco do `ds-explorer` é servir como ferramenta didática para estudo, demonstração em aula e exploração prática por estudantes e instrutores. O projeto não tenta ser uma biblioteca de produção; ele prioriza clareza visual, animação passo a passo e explicações acessíveis.
+
+## Objetivo educacional
+
+O projeto foi pensado para apoiar o ensino de Estruturas de Dados e Algoritmos por meio de:
+
+- visualização de operações passo a passo
+- comparação entre custo assintótico e custo real percebido
+- explicações sobre localidade de memória e hierarquia de caches
+- exemplos de implementação em múltiplas linguagens
+- organização taxonômica das estruturas para estudo progressivo
 
 ## Stack
 
-- **Backend:** Go 1.22+ com `net/http` (sem frameworks externos)
-- **Templates:** `html/template` (Go)
-- **Frontend:** Vanilla JavaScript + CSS puro com variáveis
-- **Persistência:** Nenhuma — toda simulação roda no navegador via JS
+- **Backend:** Go 1.22+ com `net/http`
+- **Templates:** `html/template`
+- **Frontend:** Vanilla JavaScript + CSS puro
+- **Persistência:** nenhuma; as simulações rodam no navegador
 
 ## Pré-requisitos
 
@@ -17,155 +29,106 @@ Aplicação web educacional interativa para visualização de estruturas de dado
 ## Executar localmente
 
 ```bash
-# Clone o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/rfulgencio3/ds-explorer.git
 cd ds-explorer
-
-# Inicie o servidor (a partir da raiz do projeto)
 go run ./cmd/server
-
-# Acesse no navegador
-http://localhost:8080
 ```
 
-> **Importante:** execute o `go run` a partir da raiz do projeto (`ds-explorer/`), pois o servidor busca os diretórios `web/` e `content/` relativos ao diretório de trabalho.
+Abra:
+
+```text
+http://localhost:8080
+```
 
 ## Executar com Docker
 
 ```bash
-# Build da imagem
 docker build -t ds-explorer .
-
-# Executar o container
 docker run -p 8080:8080 ds-explorer
-
-# Acesse no navegador
-http://localhost:8080
 ```
+
+## Páginas disponíveis
+
+| Rota | Descrição |
+|---|---|
+| `GET /` | Home com cards das estruturas |
+| `GET /structure/{id}` | Visualizador interativo da estrutura |
+| `GET /references` | Página de referências e taxonomia |
+| `GET /big-o` | Guia de notação assintótica |
+| `GET /memory-hierarchy` | Guia de hierarquia de memória |
+| `GET /compare` | Placeholder para comparação futura |
+| `GET /api/structures` | Lista das estruturas em JSON |
+| `GET /api/structure/{id}` | Metadados JSON de uma estrutura |
+
+## Estruturas atualmente implementadas
+
+| Estrutura | ID | Categoria | Subtipo | Status |
+|---|---|---|---|---|
+| Array Estático | `array` | Linear | Sequencial | Disponível |
+| Lista Dinâmica | `dynamic-list` | Linear | Sequencial | Disponível |
+| Lista Encadeada Simples | `singly-linked-list` | Linear | Encadeada | Disponível |
+| Lista Encadeada Dupla | `doubly-linked-list` | Linear | Encadeada | Disponível |
+| Lista Circular | `circular-list` | Linear | Encadeada | Disponível |
+
+## Estruturas planejadas
+
+| Estrutura | Categoria | Subtipo | Status |
+|---|---|---|---|
+| Pilha (Stack) | Linear | Restrita | Em breve |
+| Fila (Queue) | Linear | Restrita | Em breve |
+| Fila Circular | Linear | Restrita | Em breve |
+| Deque | Linear | Restrita | Em breve |
+| Árvore Binária de Busca | Árvore | - | Em breve |
+| Árvore AVL | Árvore | - | Em breve |
+| Heap | Árvore | - | Em breve |
+| Tabela Hash | Hash | - | Em breve |
+| Grafo | Grafo | - | Em breve |
+| Skip List | Linear | Probabilística | Em breve |
+| Trie | Árvore | - | Em breve |
 
 ## Estrutura do projeto
 
-```
+```text
 ds-explorer/
-├── cmd/server/
-│   └── main.go                    # Servidor HTTP, rotas, serve templates
-├── internal/
-│   └── structures/                # Implementações Go (referência didática)
-│       ├── array/
-│       │   └── array.go           # Array estático com operações comentadas
-│       └── linkedlist/
-│           ├── singly.go          # Lista encadeada simples
-│           └── doubly.go          # Lista encadeada dupla
-├── web/
-│   ├── templates/
-│   │   ├── base.html              # Layout base (nav, head, scripts)
-│   │   ├── home.html              # Página inicial com cards das estruturas
-│   │   ├── structure.html         # Visualizador interativo de cada estrutura
-│   │   └── compare.html           # Placeholder para comparativo futuro
-│   └── static/
-│       ├── css/
-│       │   ├── main.css           # Reset, variáveis de cor, tipografia
-│       │   ├── structure.css      # Estilos da visualização e painéis
-│       │   └── animations.css     # Animações CSS das operações
-│       └── js/
-│           ├── core/
-│           │   ├── renderer.js    # Renderiza nós e setas no SVG
-│           │   └── animator.js    # Controla steps de animação
-│           └── structures/
-│               ├── array.js       # Simulação do Array estático
-│               ├── singly.js      # Simulação da Lista Encadeada Simples
-│               └── doubly.js      # Simulação da Lista Encadeada Dupla
-├── content/
-│   └── structures/
-│       ├── array.json             # Metadados: Big-O, casos de uso, snippets
-│       ├── singly-linked-list.json
-│       └── doubly-linked-list.json
-├── go.mod
+├── cmd/server/                  # Servidor HTTP e catálogo das estruturas
+├── content/structures/          # Metadados JSON por estrutura
+├── internal/structures/         # Implementações de referência em Go
+├── web/templates/               # Templates HTML
+├── web/static/css/              # Estilos globais e específicos
+├── web/static/js/core/          # Renderer, animator, painel de memória
+├── web/static/js/structures/    # Simulações por estrutura
 ├── Dockerfile
-└── NEXT_FEATURE_PROMPT.md         # Prompt base para adicionar novas estruturas
+├── go.mod
+└── README.md
 ```
 
-## Rotas disponíveis
+## Conteúdo didático já coberto
 
-| Rota                      | Descrição                                      |
-|---------------------------|------------------------------------------------|
-| `GET /`                   | Página inicial com lista de estruturas         |
-| `GET /structure/{id}`     | Visualizador da estrutura (ex: `/structure/array`) |
-| `GET /api/structure/{id}` | API JSON com metadados da estrutura            |
-| `GET /compare`            | Placeholder para comparativo futuro            |
-| `GET /static/...`         | Arquivos estáticos (CSS, JS)                   |
-
-IDs disponíveis: `array`, `singly-linked-list`, `doubly-linked-list`
-
-## Estruturas implementadas (MVP)
-
-| Estrutura              | ID                   | Status       |
-|------------------------|----------------------|--------------|
-| Array Estático         | `array`              | ✅ Disponível |
-| Lista Encadeada Simples | `singly-linked-list` | ✅ Disponível |
-| Lista Encadeada Dupla  | `doubly-linked-list` | ✅ Disponível |
-| Pilha                  | `stack`              | 🔜 Em breve   |
-| Fila                   | `queue`              | 🔜 Em breve   |
-| Árvore Binária         | `binary-tree`        | 🔜 Em breve   |
+- classificação por família estrutural e subtipo
+- Big-O com tooltip e cores por faixa de complexidade
+- referências técnicas por estrutura
+- explicação de `O`, `Ω`, `Θ`, `o`, `ω`
+- gráfico de crescimento assintótico
+- introdução a `L1`, `L2`, `L3` e `RAM`
+- simulação visual de acesso à hierarquia de memória
 
 ## Como adicionar uma nova estrutura
 
-Adicionar uma estrutura exige apenas **3 passos**, sem alterar templates ou o core de animação:
+O fluxo padrão é:
 
-### 1. Criar o arquivo de metadados
-
-```
-content/structures/{id}.json
-```
-
-Siga o formato dos arquivos existentes: `id`, `name`, `category`, `description`, `complexity`, `useCases`, `codeSnippets`.
-
-### 2. Criar o módulo JavaScript de simulação
-
-```
-web/static/js/structures/{id}.js
-```
-
-O arquivo deve exportar a função `initStructurePage()`. Veja `array.js` ou `singly.js` como referência.
-
-### 3. Registrar no servidor
-
-Em [cmd/server/main.go](cmd/server/main.go), adicione uma entrada no slice `registry`:
-
-```go
-{ID: "stack", Name: "Pilha", Available: true},
-```
-
-E mapeie o ID ao arquivo JS em [web/templates/structure.html](web/templates/structure.html):
-
-```js
-const jsMap = {
-    "array":              "/static/js/structures/array.js",
-    "singly-linked-list": "/static/js/structures/singly.js",
-    "doubly-linked-list": "/static/js/structures/doubly.js",
-    "stack":              "/static/js/structures/stack.js",   // novo
-};
-```
-
-> Para um guia detalhado com prompt pronto para IA, veja [NEXT_FEATURE_PROMPT.md](NEXT_FEATURE_PROMPT.md).
+1. criar um novo arquivo em `content/structures/{id}.json`
+2. criar a simulação em `web/static/js/structures/{arquivo}.js`
+3. registrar a estrutura no `registry` em `cmd/server/main.go`
+4. mapear o `id` para o arquivo JS em `web/templates/structure.html`, se necessário
 
 ## Implementações de referência em Go
 
-Os arquivos em `internal/structures/` são **código didático comentado** — não são usados pelo servidor em produção. Servem como:
+Os arquivos em `internal/structures/` existem como apoio pedagógico. Eles não são a fonte da animação do navegador; servem como:
 
-- Material de sala de aula (código correto e legível)
-- Referência para verificar a lógica implementada no JS
-- Base para exemplos ao vivo durante a aula
+- referência de implementação
+- material de estudo
+- base para exemplos em aula
 
-## Paleta de cores
+## Observação
 
-| Variável CSS          | Cor       | Uso                        |
-|-----------------------|-----------|----------------------------|
-| `--color-bg`          | `#0f1117` | Fundo da página            |
-| `--color-surface`     | `#1a1d27` | Cards e painéis            |
-| `--color-primary`     | `#4f8ef7` | Ações principais, links    |
-| `--color-success`     | `#41b36e` | Inserção bem-sucedida      |
-| `--color-danger`      | `#e05c5c` | Remoção, erro              |
-| `--color-warning`     | `#f5a623` | Atualização, realocação    |
-| `--color-text`        | `#e2e8f0` | Texto principal            |
-| `--color-text-muted`  | `#8892a4` | Texto secundário           |
+Este é um projeto educacional. Algumas simplificações visuais e de simulação são intencionais para favorecer compreensão, mesmo quando o comportamento real de hardware ou runtime é mais complexo.
