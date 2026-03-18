@@ -87,7 +87,14 @@
   font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.6;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg);
 }
+
+.step-log::-webkit-scrollbar        { width: 6px; }
+.step-log::-webkit-scrollbar-track  { background: var(--color-bg); border-radius: 3px; }
+.step-log::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+.step-log::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 
 .log-hint {
   color: var(--color-text-muted);
