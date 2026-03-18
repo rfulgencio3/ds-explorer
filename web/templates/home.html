@@ -27,9 +27,20 @@
     <a href="/structure/{{.ID}}" class="card card--available">
       <div class="card-category">{{.Category}}</div>
       <h2 class="card-name">{{.Name}}</h2>
-      <div class="card-meta">
-        <span class="card-meta-label">Busca</span>
-        <span class="card-complexity">{{.SearchBig0}}</span>
+      <p class="card-name-en">{{.EnglishName}}</p>
+      <div class="card-metrics">
+        <div class="card-meta">
+          <span class="card-meta-label">Busca</span>
+          <span class="card-complexity {{complexityClass .SearchBig0}}" title="{{complexityTooltip .SearchBig0}}">{{.SearchBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Inserção</span>
+          <span class="card-complexity {{complexityClass .InsertBig0}}" title="{{complexityTooltip .InsertBig0}}">{{.InsertBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Alteração</span>
+          <span class="card-complexity {{complexityClass .UpdateBig0}}" title="{{complexityTooltip .UpdateBig0}}">{{.UpdateBig0}}</span>
+        </div>
       </div>
       <div class="card-footer">
         <span class="btn btn--sm">Explorar &rarr;</span>
@@ -39,9 +50,20 @@
     <div class="card card--soon">
       <div class="card-category">{{.Category}}</div>
       <h2 class="card-name">{{.Name}}</h2>
-      <div class="card-meta">
-        <span class="card-meta-label">Busca</span>
-        <span class="card-complexity">{{.SearchBig0}}</span>
+      <p class="card-name-en">{{.EnglishName}}</p>
+      <div class="card-metrics">
+        <div class="card-meta">
+          <span class="card-meta-label">Busca</span>
+          <span class="card-complexity {{complexityClass .SearchBig0}}" title="{{complexityTooltip .SearchBig0}}">{{.SearchBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Inserção</span>
+          <span class="card-complexity {{complexityClass .InsertBig0}}" title="{{complexityTooltip .InsertBig0}}">{{.InsertBig0}}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-label">Alteração</span>
+          <span class="card-complexity {{complexityClass .UpdateBig0}}" title="{{complexityTooltip .UpdateBig0}}">{{.UpdateBig0}}</span>
+        </div>
       </div>
       <div class="card-footer">
         <span class="badge-soon">Em breve</span>
