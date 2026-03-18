@@ -59,6 +59,42 @@
     </p>
   </div>
 
+  <div class="memory-cycle-card">
+    <div class="memory-cycle-copy">
+      <h3 class="mini-title">Animacao de acesso</h3>
+      <p>
+        A animacao abaixo representa um acesso saindo do core e atravessando os niveis de memoria.
+        Quanto mais longe do centro, maior tende a ser a latencia acumulada.
+      </p>
+      <p class="chart-note">
+        Ilustracao didatica em loop continuo, no estilo de um gif: nao representa ciclos exatos, e sim a proporcao relativa entre os niveis.
+      </p>
+    </div>
+
+    <div class="memory-cycle-demo" aria-label="Animacao didatica de acesso entre core, L1, L2, L3 e RAM">
+      <div class="memory-ring memory-ring--ram">
+        <span class="memory-ring-label">RAM · ~100-300 ciclos</span>
+      </div>
+      <div class="memory-ring memory-ring--l3">
+        <span class="memory-ring-label">L3 · ~30-70 ciclos</span>
+      </div>
+      <div class="memory-ring memory-ring--l2">
+        <span class="memory-ring-label">L2 · ~10-20 ciclos</span>
+      </div>
+      <div class="memory-ring memory-ring--l1">
+        <span class="memory-ring-label">L1 · ~3-5 ciclos</span>
+      </div>
+      <div class="memory-core">
+        <span>CORE</span>
+      </div>
+      <div class="memory-pulse memory-pulse--l1"></div>
+      <div class="memory-pulse memory-pulse--l2"></div>
+      <div class="memory-pulse memory-pulse--l3"></div>
+      <div class="memory-pulse memory-pulse--ram"></div>
+      <div class="memory-packet"></div>
+    </div>
+  </div>
+
   <div class="memory-ladder">
     <article class="memory-tier memory-tier--l1">
       <div class="memory-tier-head">

@@ -894,6 +894,145 @@ a:hover { text-decoration: underline; }
   gap: 1rem;
 }
 
+.memory-cycle-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 1.2rem;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+
+.memory-cycle-copy {
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+.memory-cycle-demo {
+  position: relative;
+  min-height: 380px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background:
+    radial-gradient(circle at center, rgba(61, 143, 212, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(20, 28, 37, 0.98), rgba(13, 17, 23, 0.98));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.memory-ring,
+.memory-core,
+.memory-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+}
+
+.memory-ring {
+  border: 1px solid rgba(116, 144, 168, 0.22);
+}
+
+.memory-ring--l1 {
+  width: 110px;
+  height: 110px;
+  border-color: rgba(110, 231, 168, 0.55);
+}
+
+.memory-ring--l2 {
+  width: 180px;
+  height: 180px;
+  border-color: rgba(139, 211, 255, 0.45);
+}
+
+.memory-ring--l3 {
+  width: 260px;
+  height: 260px;
+  border-color: rgba(240, 211, 122, 0.35);
+}
+
+.memory-ring--ram {
+  width: 340px;
+  height: 340px;
+  border-color: rgba(255, 141, 141, 0.3);
+}
+
+.memory-ring-label {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.memory-core {
+  width: 62px;
+  height: 62px;
+  background: radial-gradient(circle at 35% 35%, rgba(139, 211, 255, 0.95), rgba(29, 90, 138, 0.92));
+  border: 1px solid rgba(139, 211, 255, 0.35);
+  box-shadow: 0 0 24px rgba(61, 143, 212, 0.28);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+}
+
+.memory-core span {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.memory-packet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #d4e8f5;
+  box-shadow: 0 0 18px rgba(212, 232, 245, 0.8);
+  animation: memory-packet-travel 4.8s linear infinite;
+  z-index: 4;
+}
+
+.memory-pulse {
+  opacity: 0;
+  border-style: solid;
+  z-index: 2;
+}
+
+.memory-pulse--l1 {
+  width: 110px;
+  height: 110px;
+  border-color: rgba(110, 231, 168, 0.7);
+  animation: memory-pulse-l1 4.8s ease-out infinite;
+}
+
+.memory-pulse--l2 {
+  width: 180px;
+  height: 180px;
+  border-color: rgba(139, 211, 255, 0.6);
+  animation: memory-pulse-l2 4.8s ease-out infinite;
+}
+
+.memory-pulse--l3 {
+  width: 260px;
+  height: 260px;
+  border-color: rgba(240, 211, 122, 0.55);
+  animation: memory-pulse-l3 4.8s ease-out infinite;
+}
+
+.memory-pulse--ram {
+  width: 340px;
+  height: 340px;
+  border-color: rgba(255, 141, 141, 0.5);
+  animation: memory-pulse-ram 4.8s ease-out infinite;
+}
+
 .memory-tier {
   padding: 1.1rem;
   position: relative;
@@ -1118,6 +1257,45 @@ a:hover { text-decoration: underline; }
     grid-template-columns: 1fr;
   }
 
+  .memory-cycle-card {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-cycle-demo {
+    min-height: 320px;
+  }
+
+  .memory-ring--ram {
+    width: 290px;
+    height: 290px;
+  }
+
+  .memory-ring--l3 {
+    width: 220px;
+    height: 220px;
+  }
+
+  .memory-ring--l2 {
+    width: 155px;
+    height: 155px;
+  }
+
+  .memory-ring--l1 {
+    width: 96px;
+    height: 96px;
+  }
+
+  .memory-ring-label {
+    left: 50%;
+    top: auto;
+    bottom: -1.6rem;
+    transform: translateX(-50%);
+    white-space: normal;
+    width: 120px;
+    text-align: center;
+    line-height: 1.35;
+  }
+
   .chart-legend {
     gap: 0.55rem 0.8rem;
   }
@@ -1128,4 +1306,68 @@ a:hover { text-decoration: underline; }
   .memory-ladder {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .memory-cycle-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes memory-packet-travel {
+  0%,
+  8% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  12% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  24% {
+    transform: translate(5px, -50%) scale(1);
+    opacity: 1;
+  }
+  36% {
+    transform: translate(40px, -50%) scale(1);
+    opacity: 1;
+  }
+  52% {
+    transform: translate(78px, -50%) scale(1);
+    opacity: 1;
+  }
+  72% {
+    transform: translate(118px, -50%) scale(1);
+    opacity: 1;
+  }
+  86% {
+    transform: translate(138px, -50%) scale(0.95);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes memory-pulse-l1 {
+  0%, 10%, 100% { opacity: 0; }
+  14%, 22% { opacity: 0.95; box-shadow: 0 0 16px rgba(110, 231, 168, 0.22); }
+  30% { opacity: 0; }
+}
+
+@keyframes memory-pulse-l2 {
+  0%, 24%, 100% { opacity: 0; }
+  28%, 38% { opacity: 0.9; box-shadow: 0 0 18px rgba(139, 211, 255, 0.18); }
+  46% { opacity: 0; }
+}
+
+@keyframes memory-pulse-l3 {
+  0%, 40%, 100% { opacity: 0; }
+  46%, 60% { opacity: 0.88; box-shadow: 0 0 18px rgba(240, 211, 122, 0.16); }
+  68% { opacity: 0; }
+}
+
+@keyframes memory-pulse-ram {
+  0%, 58%, 100% { opacity: 0; }
+  66%, 84% { opacity: 0.84; box-shadow: 0 0 22px rgba(255, 141, 141, 0.18); }
+  92% { opacity: 0; }
 }

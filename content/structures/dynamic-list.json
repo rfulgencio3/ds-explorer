@@ -1,0 +1,39 @@
+{
+  "id": "dynamic-list",
+  "name": "Lista Dinâmica",
+  "category": "Linear",
+  "description": "Uma lista dinâmica usa um array contíguo interno que cresce conforme necessário. Ela preserva acesso rápido por índice e boa localidade de memória, mas ocasionalmente precisa realocar um buffer maior e copiar os elementos existentes.",
+  "complexity": {
+    "access":        { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":   { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "insertEnd":     { "best": "O(1)", "average": "O(1) amort.", "worst": "O(n)" },
+    "insertMiddle":  { "best": "O(n)", "average": "O(n)", "worst": "O(n)" },
+    "delete":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "space":         "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Coleções com tamanho variável",
+      "Leitura frequente por índice",
+      "Iteração sequencial com boa localidade de cache",
+      "Cenários em que append no fim é comum"
+    ],
+    "notRecommended": [
+      "Inserções e remoções frequentes no início",
+      "Crescimento extremo quando cada realocação custa caro",
+      "Cenários onde ponteiros estáveis para elementos são necessários"
+    ],
+    "realWorldExamples": [
+      "List<T> em aplicações .NET",
+      "Coleções de resultados em APIs",
+      "Buffers de dados acumulados em lote",
+      "Listas de itens em interfaces e relatórios"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "// List<T> usa um array interno com capacidade dinâmica\nvar list = new List<int> { 10, 20, 30 };\nlist.Add(40);          // append amortizado O(1)\nlist.Insert(1, 15);    // desloca elementos\nlist[2] = 99;          // acesso por índice O(1)\n",
+    "python": "# list do Python também é um array dinâmico\narr = [10, 20, 30]\narr.append(40)      # append amortizado O(1)\narr.insert(1, 15)   # desloca elementos\narr[2] = 99         # acesso por índice O(1)\n",
+    "javascript": "// Arrays em JS funcionam como listas dinâmicas\nconst list = [10, 20, 30];\nlist.push(40);        // append amortizado O(1)\nlist.splice(1, 0, 15);\nlist[2] = 99;\n"
+  }
+}

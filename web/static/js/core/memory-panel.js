@@ -33,6 +33,15 @@ const MemoryPanel = (() => {
       // Sem overhead de ponteiro — todos os bytes são dados
       ptrOverhead: null,
     },
+    arraylist: {
+      bytesPerElem: 4,          // int32 = 4 bytes
+      allocType:   'Dinâmica contígua',
+      elemLabel:   'Por slot',
+      cacheLineElems: 16,       // 64B / 4B = 16 ints por cache line
+      baseAddr: 0x1800,
+      fragmented: false,
+      ptrOverhead: null,
+    },
     singly: {
       bytesPerElem: 16,         // value(4) + next ptr(8) + padding(4) = 16B
       allocType:   'Dinâmica (heap)',
