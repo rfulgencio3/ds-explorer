@@ -23,3 +23,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Codex / local runtime artifacts
+.codex-server.err
+.codex-server.out
+.gocache/
+server.exe
+*.exe~
