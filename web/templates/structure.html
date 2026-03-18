@@ -229,9 +229,9 @@
 </script>
 
 <!-- Core -->
-<script src="/static/js/core/renderer.js"></script>
-<script src="/static/js/core/memory-panel.js"></script>
-<script src="/static/js/core/animator.js"></script>
+<script src="{{assetURL "/static/js/core/renderer.js"}}"></script>
+<script src="{{assetURL "/static/js/core/memory-panel.js"}}"></script>
+<script src="{{assetURL "/static/js/core/animator.js"}}"></script>
 
 <!-- Estrutura específica (carregada dinamicamente) -->
 <script>
@@ -246,7 +246,8 @@
     'circular-list':      'circular-list',
   };
   const jsFile = jsMap[id] || id;
-  script.src = `/static/js/structures/${jsFile}.js`;
+  const cacheBuster = new URLSearchParams(window.location.search).get('__lr');
+  script.src = `/static/js/structures/${jsFile}.js${cacheBuster ? `?v=${cacheBuster}` : ''}`;
   script.onload = () => initStructurePage();
   document.body.appendChild(script);
 })();

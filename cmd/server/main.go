@@ -2,12 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 // Structure holds metadata for a data structure card and page.
@@ -21,6 +26,11 @@ type Structure struct {
 	InsertBig0  string `json:"insertBigO"`
 	UpdateBig0  string `json:"updateBigO"`
 	Available   bool   `json:"available"`
+}
+
+type navGroup struct {
+	Category string
+	Items    []Structure
 }
 
 // registry lists every structure the application knows about.
@@ -43,7 +53,11 @@ var registry = []Structure{
 	{ID: "trie", Name: "Trie", EnglishName: "Trie", Category: "Árvore", SearchBig0: "O(m)", InsertBig0: "O(m)", UpdateBig0: "O(m)", Available: false},
 }
 
-var templates map[string]*template.Template
+var (
+	templates       map[string]*template.Template
+	devLiveReload   = os.Getenv("DS_DEV_LIVE_RELOAD") == "1"
+	liveReloadState = newLiveReloadState()
+)
 
 func main() {
 	var err error
@@ -52,11 +66,25 @@ func main() {
 		log.Fatalf("parsing templates: %v", err)
 	}
 
+	if devLiveReload {
+		go watchLiveReloadChanges([]string{
+			filepath.Join("web", "templates"),
+			filepath.Join("web", "static"),
+			filepath.Join("content", "structures"),
+		}, 700*time.Millisecond)
+		log.Println("live reload enabled (set DS_DEV_LIVE_RELOAD=1)")
+	}
+
 	mux := http.NewServeMux()
 
 	// Static files
 	fs := http.FileServer(http.Dir("web/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// Dev utilities
+	if devLiveReload {
+		mux.HandleFunc("GET /__live-reload", handleLiveReload)
+	}
 
 	// Pages
 	mux.HandleFunc("GET /{$}", handleHome)
@@ -74,16 +102,9 @@ func main() {
 func loadTemplates() (map[string]*template.Template, error) {
 	pages := []string{"home.html", "structure.html", "compare.html"}
 	loaded := make(map[string]*template.Template, len(pages))
-	funcs := template.FuncMap{
-		"complexityClass":   complexityClass,
-		"complexityTooltip": complexityTooltip,
-	}
 
 	for _, page := range pages {
-		tmpl, err := template.New("base").Funcs(funcs).ParseFiles(
-			filepath.Join("web", "templates", "base.html"),
-			filepath.Join("web", "templates", page),
-		)
+		tmpl, err := parseTemplate(page)
 		if err != nil {
 			return nil, err
 		}
@@ -91,6 +112,65 @@ func loadTemplates() (map[string]*template.Template, error) {
 	}
 
 	return loaded, nil
+}
+
+func parseTemplate(page string) (*template.Template, error) {
+	return template.New("base").Funcs(template.FuncMap{
+		"complexityClass":   complexityClass,
+		"complexityTooltip": complexityTooltip,
+		"devLiveReload":     func() bool { return devLiveReload },
+		"assetURL":          assetURL,
+		"navGroups":         navGroups,
+	}).ParseFiles(
+		filepath.Join("web", "templates", "base.html"),
+		filepath.Join("web", "templates", page),
+	)
+}
+
+func navGroups() []navGroup {
+	groups := make([]navGroup, 0)
+	indexByCategory := make(map[string]int)
+
+	for _, item := range registry {
+		idx, ok := indexByCategory[item.Category]
+		if !ok {
+			idx = len(groups)
+			indexByCategory[item.Category] = idx
+			groups = append(groups, navGroup{Category: item.Category})
+		}
+		groups[idx].Items = append(groups[idx].Items, item)
+	}
+
+	return groups
+}
+
+func getTemplate(page string) (*template.Template, error) {
+	if devLiveReload {
+		return parseTemplate(page)
+	}
+	tmpl, ok := templates[page]
+	if !ok {
+		return nil, fmt.Errorf("template %s not loaded", page)
+	}
+	return tmpl, nil
+}
+
+func renderPage(w http.ResponseWriter, page string, data any) {
+	tmpl, err := getTemplate(page)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := tmpl.ExecuteTemplate(w, page, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func assetURL(path string) string {
+	if !devLiveReload {
+		return path
+	}
+	return fmt.Sprintf("%s?v=%d", path, liveReloadState.Version())
 }
 
 func complexityClass(value string) string {
@@ -140,9 +220,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if err := templates["home.html"].ExecuteTemplate(w, "home.html", registry); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	renderPage(w, "home.html", registry)
 }
 
 func handleStructure(w http.ResponseWriter, r *http.Request) {
@@ -163,18 +241,14 @@ func handleStructure(w http.ResponseWriter, r *http.Request) {
 		ID      string
 		Payload template.JS
 	}
-	if err := templates["structure.html"].ExecuteTemplate(w, "structure.html", pageData{
+	renderPage(w, "structure.html", pageData{
 		ID:      id,
 		Payload: template.JS(data),
-	}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	})
 }
 
 func handleCompare(w http.ResponseWriter, r *http.Request) {
-	if err := templates["compare.html"].ExecuteTemplate(w, "compare.html", nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	renderPage(w, "compare.html", nil)
 }
 
 func handleAPIStructures(w http.ResponseWriter, r *http.Request) {
@@ -190,6 +264,34 @@ func handleAPIStructure(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
+}
+
+func handleLiveReload(w http.ResponseWriter, r *http.Request) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming not supported", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	ch, unregister := liveReloadState.Subscribe()
+	defer unregister()
+
+	fmt.Fprintf(w, "data: %d\n\n", liveReloadState.Version())
+	flusher.Flush()
+
+	for {
+		select {
+		case version := <-ch:
+			fmt.Fprintf(w, "data: %d\n\n", version)
+			flusher.Flush()
+		case <-r.Context().Done():
+			return
+		}
+	}
 }
 
 // loadStructureJSON reads content/structures/{id}.json from disk.
@@ -213,4 +315,126 @@ func isKnownID(id string) bool {
 func renderJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(v)
+}
+
+type liveReloadTracker struct {
+	version   atomic.Int64
+	mu        sync.Mutex
+	listeners map[chan int64]struct{}
+}
+
+func newLiveReloadState() *liveReloadTracker {
+	t := &liveReloadTracker{
+		listeners: make(map[chan int64]struct{}),
+	}
+	t.version.Store(time.Now().UnixMilli())
+	return t
+}
+
+func (t *liveReloadTracker) Version() int64 {
+	return t.version.Load()
+}
+
+func (t *liveReloadTracker) Subscribe() (chan int64, func()) {
+	ch := make(chan int64, 1)
+
+	t.mu.Lock()
+	t.listeners[ch] = struct{}{}
+	t.mu.Unlock()
+
+	return ch, func() {
+		t.mu.Lock()
+		delete(t.listeners, ch)
+		t.mu.Unlock()
+		close(ch)
+	}
+}
+
+func (t *liveReloadTracker) Notify() {
+	version := time.Now().UnixMilli()
+	t.version.Store(version)
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	for ch := range t.listeners {
+		select {
+		case ch <- version:
+		default:
+		}
+	}
+}
+
+func watchLiveReloadChanges(roots []string, interval time.Duration) {
+	state := make(map[string]time.Time)
+	_, _ = scanLiveReloadFiles(roots, state)
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		changed, err := scanLiveReloadFiles(roots, state)
+		if err != nil {
+			log.Printf("live reload watcher error: %v", err)
+			continue
+		}
+		if changed {
+			liveReloadState.Notify()
+		}
+	}
+}
+
+func scanLiveReloadFiles(roots []string, state map[string]time.Time) (bool, error) {
+	seen := make(map[string]struct{})
+	changed := false
+
+	for _, root := range roots {
+		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
+				return nil
+			}
+			if !shouldWatchFile(path) {
+				return nil
+			}
+
+			info, err := d.Info()
+			if err != nil {
+				return err
+			}
+
+			seen[path] = struct{}{}
+			last, ok := state[path]
+			if !ok || info.ModTime().After(last) {
+				state[path] = info.ModTime()
+				if ok {
+					changed = true
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return false, err
+		}
+	}
+
+	for path := range state {
+		if _, ok := seen[path]; !ok {
+			delete(state, path)
+			changed = true
+		}
+	}
+
+	return changed, nil
+}
+
+func shouldWatchFile(path string) bool {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".html", ".css", ".js", ".json", ".svg", ".png", ".jpg", ".jpeg", ".ico", ".webp":
+		return true
+	default:
+		return false
+	}
 }

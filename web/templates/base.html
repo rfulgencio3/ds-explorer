@@ -5,16 +5,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{block "title" .}}ds-explorer{{end}}</title>
-  <link rel="icon" href="/static/img/favicon.ico" type="image/png">
+  <link rel="icon" href="{{assetURL "/static/img/favicon.ico"}}" type="image/png">
 
-  <!-- JetBrains Mono — fonte principal (combina com identidade visual do logo) -->
+  <!-- JetBrains Mono - fonte principal -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/structure.css">
-  <link rel="stylesheet" href="/static/css/animations.css">
+  <link rel="stylesheet" href="{{assetURL "/static/css/main.css"}}">
+  <link rel="stylesheet" href="{{assetURL "/static/css/structure.css"}}">
+  <link rel="stylesheet" href="{{assetURL "/static/css/animations.css"}}">
 </head>
 <body>
   <header class="site-header">
@@ -28,7 +28,17 @@
             Estruturas <span class="nav-dropdown-arrow">▾</span>
           </a>
           <div class="nav-dropdown-menu" id="structures-dropdown">
-            <div class="nav-dropdown-loading">Carregando…</div>
+            {{range $i, $group := navGroups}}
+            {{if gt $i 0}}<div class="nav-dropdown-sep"></div>{{end}}
+            <div class="nav-dropdown-cat">{{$group.Category}}</div>
+            {{range $group.Items}}
+            {{if .Available}}
+            <a href="/structure/{{.ID}}" class="nav-dropdown-item">{{.Name}}</a>
+            {{else}}
+            <span class="nav-dropdown-item nav-dropdown-item--soon" title="Em breve">{{.Name}}<span class="nav-dropdown-badge">[em breve]</span></span>
+            {{end}}
+            {{end}}
+            {{end}}
           </div>
         </div>
         <a href="/compare" class="nav-link nav-link--disabled" title="Em breve">Comparar</a>
@@ -52,43 +62,40 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/structures')
-      .then(r => r.json())
-      .then(structures => {
-        const menu = document.getElementById('structures-dropdown');
-        if (!menu) return;
-
-        // Agrupa por categoria
-        const groups = {};
-        structures.forEach(s => {
-          if (!groups[s.category]) groups[s.category] = [];
-          groups[s.category].push(s);
-        });
-
-        const currentPath = window.location.pathname;
-        let html = '';
-
-        Object.entries(groups).forEach(([cat, items], gi) => {
-          if (gi > 0) html += '<div class="nav-dropdown-sep"></div>';
-          html += `<div class="nav-dropdown-cat">${cat}</div>`;
-          items.forEach(s => {
-            if (s.available) {
-              const active = currentPath === `/structure/${s.id}` ? ' nav-dropdown-item--active' : '';
-              html += `<a href="/structure/${s.id}" class="nav-dropdown-item${active}">${s.name}</a>`;
-            } else {
-              html += `<span class="nav-dropdown-item nav-dropdown-item--soon" title="Em breve">${s.name}<span class="nav-dropdown-badge">[em breve]</span></span>`;
-            }
-          });
-        });
-
-        menu.innerHTML = html;
-      })
-      .catch(() => {
-        const menu = document.getElementById('structures-dropdown');
-        if (menu) menu.innerHTML = '<span class="nav-dropdown-item nav-dropdown-item--soon">Erro ao carregar</span>';
-      });
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('#structures-dropdown a.nav-dropdown-item').forEach((link) => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('nav-dropdown-item--active');
+      }
+    });
   });
   </script>
+  {{if devLiveReload}}
+  <script>
+  (() => {
+    const source = new EventSource('/__live-reload');
+    let currentVersion = null;
+
+    source.onmessage = (event) => {
+      const nextVersion = event.data;
+      if (!currentVersion) {
+        currentVersion = nextVersion;
+        return;
+      }
+      if (nextVersion === currentVersion) return;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('__lr', nextVersion);
+      window.location.replace(url.toString());
+    };
+
+    source.onerror = () => {
+      source.close();
+      setTimeout(() => window.location.reload(), 1200);
+    };
+  })();
+  </script>
+  {{end}}
 </body>
 </html>
 {{end}}
