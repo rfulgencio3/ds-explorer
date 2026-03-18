@@ -896,16 +896,26 @@ a:hover { text-decoration: underline; }
 
 .memory-cycle-card {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
-  gap: 1.2rem;
-  align-items: center;
+  gap: 1rem;
   margin-bottom: 1.1rem;
+  padding: 1.15rem;
+  background: linear-gradient(180deg, rgba(20, 28, 37, 0.98), rgba(13, 17, 23, 0.98));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
 }
 
 .memory-cycle-copy {
   color: var(--color-text-muted);
   font-size: 0.84rem;
   line-height: 1.7;
+}
+
+.memory-cycle-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(280px, 360px);
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .memory-cycle-demo {
@@ -918,6 +928,20 @@ a:hover { text-decoration: underline; }
     linear-gradient(180deg, rgba(20, 28, 37, 0.98), rgba(13, 17, 23, 0.98));
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.memory-demo-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  transform: translateX(-50%);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  background: rgba(13, 17, 23, 0.78);
+  border: 1px solid rgba(30, 45, 61, 0.9);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  white-space: nowrap;
 }
 
 .memory-ring,
@@ -956,16 +980,6 @@ a:hover { text-decoration: underline; }
   width: 340px;
   height: 340px;
   border-color: rgba(255, 141, 141, 0.3);
-}
-
-.memory-ring-label {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 14px);
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  white-space: nowrap;
 }
 
 .memory-core {
@@ -1032,6 +1046,57 @@ a:hover { text-decoration: underline; }
   border-color: rgba(255, 141, 141, 0.5);
   animation: memory-pulse-ram 4.8s ease-out infinite;
 }
+
+.memory-cycle-legend {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.memory-cycle-item {
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: rgba(13, 17, 23, 0.7);
+}
+
+.memory-cycle-item-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.memory-cycle-item strong {
+  color: var(--color-text);
+  font-size: 0.86rem;
+}
+
+.memory-cycle-item p {
+  color: var(--color-text-muted);
+  font-size: 0.77rem;
+  line-height: 1.55;
+}
+
+.memory-cycle-item p + p {
+  margin-top: 0.18rem;
+}
+
+.memory-cycle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.memory-cycle-item--l1 .memory-cycle-dot { background: #6ee7a8; }
+.memory-cycle-item--l2 .memory-cycle-dot { background: #8bd3ff; }
+.memory-cycle-item--l3 .memory-cycle-dot { background: #f0d37a; }
+.memory-cycle-item--ram .memory-cycle-dot { background: #ff8d8d; }
+
+.memory-cycle-item--l1 { border-color: rgba(110, 231, 168, 0.24); }
+.memory-cycle-item--l2 { border-color: rgba(139, 211, 255, 0.22); }
+.memory-cycle-item--l3 { border-color: rgba(240, 211, 122, 0.2); }
+.memory-cycle-item--ram { border-color: rgba(255, 141, 141, 0.2); }
 
 .memory-tier {
   padding: 1.1rem;
@@ -1261,6 +1326,10 @@ a:hover { text-decoration: underline; }
     grid-template-columns: 1fr;
   }
 
+  .memory-cycle-layout {
+    grid-template-columns: 1fr;
+  }
+
   .memory-cycle-demo {
     min-height: 320px;
   }
@@ -1285,17 +1354,6 @@ a:hover { text-decoration: underline; }
     height: 96px;
   }
 
-  .memory-ring-label {
-    left: 50%;
-    top: auto;
-    bottom: -1.6rem;
-    transform: translateX(-50%);
-    white-space: normal;
-    width: 120px;
-    text-align: center;
-    line-height: 1.35;
-  }
-
   .chart-legend {
     gap: 0.55rem 0.8rem;
   }
@@ -1308,6 +1366,10 @@ a:hover { text-decoration: underline; }
   }
 
   .memory-cycle-card {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-cycle-layout {
     grid-template-columns: 1fr;
   }
 }

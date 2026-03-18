@@ -63,35 +63,71 @@
     <div class="memory-cycle-copy">
       <h3 class="mini-title">Animacao de acesso</h3>
       <p>
-        A animacao abaixo representa um acesso saindo do core e atravessando os niveis de memoria.
-        Quanto mais longe do centro, maior tende a ser a latencia acumulada.
+        O diagrama abaixo mostra um acesso partindo do core e atravessando a hierarquia de memoria.
+        Quando o dado nao e encontrado no nivel mais proximo, a busca avanca para um nivel maior e mais lento.
+      </p>
+      <p>
+        A leitura correta e esta: <code>L1</code> responde primeiro, <code>L2</code> entra quando ha miss em L1,
+        <code>L3</code> amplia a chance de reaproveitamento entre nucleos, e a <code>RAM</code> fica como ultimo salto,
+        com custo muito maior de latencia.
       </p>
       <p class="chart-note">
-        Ilustracao didatica em loop continuo, no estilo de um gif: nao representa ciclos exatos, e sim a proporcao relativa entre os niveis.
+        Ilustracao didatica em loop continuo. Os valores de ciclos sao faixas aproximadas para comunicar relacao relativa,
+        nao uma medicao exata de uma CPU especifica.
       </p>
     </div>
 
-    <div class="memory-cycle-demo" aria-label="Animacao didatica de acesso entre core, L1, L2, L3 e RAM">
-      <div class="memory-ring memory-ring--ram">
-        <span class="memory-ring-label">RAM · ~100-300 ciclos</span>
+    <div class="memory-cycle-layout">
+      <div class="memory-cycle-demo" aria-label="Animacao didatica de acesso entre core, L1, L2, L3 e RAM">
+        <div class="memory-ring memory-ring--ram"></div>
+        <div class="memory-ring memory-ring--l3"></div>
+        <div class="memory-ring memory-ring--l2"></div>
+        <div class="memory-ring memory-ring--l1"></div>
+        <div class="memory-core">
+          <span>CORE</span>
+        </div>
+        <div class="memory-pulse memory-pulse--l1"></div>
+        <div class="memory-pulse memory-pulse--l2"></div>
+        <div class="memory-pulse memory-pulse--l3"></div>
+        <div class="memory-pulse memory-pulse--ram"></div>
+        <div class="memory-packet"></div>
+        <div class="memory-demo-caption">miss em um nivel empurra a busca para o proximo</div>
       </div>
-      <div class="memory-ring memory-ring--l3">
-        <span class="memory-ring-label">L3 · ~30-70 ciclos</span>
+
+      <div class="memory-cycle-legend">
+        <article class="memory-cycle-item memory-cycle-item--l1">
+          <div class="memory-cycle-item-head">
+            <span class="memory-cycle-dot"></span>
+            <strong>L1 Cache</strong>
+          </div>
+          <p>~3-5 ciclos</p>
+          <p>Mais perto do core. Melhor cenário para dados quentes e loops apertados.</p>
+        </article>
+        <article class="memory-cycle-item memory-cycle-item--l2">
+          <div class="memory-cycle-item-head">
+            <span class="memory-cycle-dot"></span>
+            <strong>L2 Cache</strong>
+          </div>
+          <p>~10-20 ciclos</p>
+          <p>Camada intermediária que absorve misses de L1 antes de chegar ao nível compartilhado.</p>
+        </article>
+        <article class="memory-cycle-item memory-cycle-item--l3">
+          <div class="memory-cycle-item-head">
+            <span class="memory-cycle-dot"></span>
+            <strong>L3 Cache</strong>
+          </div>
+          <p>~30-70 ciclos</p>
+          <p>Maior e normalmente compartilhado. Ainda é muito melhor do que buscar direto na RAM.</p>
+        </article>
+        <article class="memory-cycle-item memory-cycle-item--ram">
+          <div class="memory-cycle-item-head">
+            <span class="memory-cycle-dot"></span>
+            <strong>RAM</strong>
+          </div>
+          <p>~100-300 ciclos</p>
+          <p>Último salto. Quando o acesso chega aqui, o custo real da operação sobe bastante.</p>
+        </article>
       </div>
-      <div class="memory-ring memory-ring--l2">
-        <span class="memory-ring-label">L2 · ~10-20 ciclos</span>
-      </div>
-      <div class="memory-ring memory-ring--l1">
-        <span class="memory-ring-label">L1 · ~3-5 ciclos</span>
-      </div>
-      <div class="memory-core">
-        <span>CORE</span>
-      </div>
-      <div class="memory-pulse memory-pulse--l1"></div>
-      <div class="memory-pulse memory-pulse--l2"></div>
-      <div class="memory-pulse memory-pulse--l3"></div>
-      <div class="memory-pulse memory-pulse--ram"></div>
-      <div class="memory-packet"></div>
     </div>
   </div>
 
