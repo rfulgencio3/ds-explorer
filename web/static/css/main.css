@@ -512,6 +512,53 @@ a:hover { text-decoration: underline; }
   letter-spacing: 0.5px;
 }
 
+/* ===== USAGE FREQUENCY BADGE ===== */
+
+.card-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.badge-usage {
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-style: italic;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: help;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  border: 1px solid transparent;
+}
+
+.badge-usage--very-common {
+  color: #6ee7a8;
+  background: rgba(62, 179, 108, 0.14);
+  border-color: rgba(62, 179, 108, 0.32);
+}
+
+.badge-usage--common {
+  color: #9ae6b4;
+  background: rgba(80, 200, 120, 0.12);
+  border-color: rgba(80, 200, 120, 0.24);
+}
+
+.badge-usage--uncommon {
+  color: #f0d37a;
+  background: rgba(240, 160, 32, 0.12);
+  border-color: rgba(240, 160, 32, 0.24);
+}
+
+.badge-usage--rare {
+  color: #ffb36b;
+  background: rgba(224, 126, 52, 0.14);
+  border-color: rgba(224, 126, 52, 0.28);
+}
+
 /* ===== REFERENCES ===== */
 .references-hero {
   padding: 0.75rem 0 1.5rem;

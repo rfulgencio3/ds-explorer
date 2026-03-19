@@ -25,7 +25,10 @@
     {{range .}}
     {{if .Available}}
     <a href="/structure/{{.ID}}" class="card card--available">
-      <div class="card-category">{{.Category}}</div>
+      <div class="card-category-row">
+        <div class="card-category">{{.Category}}</div>
+        {{if .UsageFrequency}}<span class="badge-usage {{usageFrequencyClass .UsageFrequency}}" title="{{usageFrequencyTooltip .UsageFrequency}}">{{.UsageFrequency}}</span>{{end}}
+      </div>
       {{if .Subtype}}<p class="card-subtype">{{.Subtype}}</p>{{end}}
       <h2 class="card-name">{{.Name}}</h2>
       <p class="card-name-en">{{.EnglishName}}</p>
@@ -49,7 +52,10 @@
     </a>
     {{else}}
     <div class="card card--soon">
-      <div class="card-category">{{.Category}}</div>
+      <div class="card-category-row">
+        <div class="card-category">{{.Category}}</div>
+        {{if .UsageFrequency}}<span class="badge-usage {{usageFrequencyClass .UsageFrequency}}" title="{{usageFrequencyTooltip .UsageFrequency}}">{{.UsageFrequency}}</span>{{end}}
+      </div>
       {{if .Subtype}}<p class="card-subtype">{{.Subtype}}</p>{{end}}
       <h2 class="card-name">{{.Name}}</h2>
       <p class="card-name-en">{{.EnglishName}}</p>

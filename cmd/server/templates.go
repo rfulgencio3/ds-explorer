@@ -47,6 +47,37 @@ var complexityTooltipMap = map[string]string{
 	"O(n!)":     "Fatorial: explosao combinatoria severa, pior desempenho para entradas maiores.",
 }
 
+// usageFrequencyClassMap mapeia UsageFrequency para o modificador CSS do badge.
+// Para adicionar um novo nível: adicione uma entrada aqui — sem alterar nenhuma função.
+var usageFrequencyClassMap = map[string]string{
+	"Muito comum":  "badge-usage--very-common",
+	"Comum":        "badge-usage--common",
+	"Pouco comum":  "badge-usage--uncommon",
+	"Raro":         "badge-usage--rare",
+}
+
+// usageFrequencyTooltipMap mapeia UsageFrequency para descrição legível no tooltip.
+var usageFrequencyTooltipMap = map[string]string{
+	"Muito comum":  "Muito comum: presente em quase todos os sistemas e linguagens modernas.",
+	"Comum":        "Comum: usada regularmente em aplicacoes e algoritmos do dia a dia.",
+	"Pouco comum":  "Pouco comum: util em cenarios especificos; raramente a primeira escolha.",
+	"Raro":         "Raro: aplicada em casos muito especializados ou como curiosidade academica.",
+}
+
+func usageFrequencyClass(value string) string {
+	if c, ok := usageFrequencyClassMap[strings.TrimSpace(value)]; ok {
+		return c
+	}
+	return ""
+}
+
+func usageFrequencyTooltip(value string) string {
+	if t, ok := usageFrequencyTooltipMap[strings.TrimSpace(value)]; ok {
+		return t
+	}
+	return "Frequencia de uso desta estrutura em aplicacoes reais."
+}
+
 func complexityClass(value string) string {
 	if c, ok := complexityClassMap[strings.TrimSpace(value)]; ok {
 		return c
@@ -78,8 +109,10 @@ func loadTemplates() (map[string]*template.Template, error) {
 
 func parseTemplate(page string) (*template.Template, error) {
 	return template.New("base").Funcs(template.FuncMap{
-		"complexityClass":   complexityClass,
-		"complexityTooltip": complexityTooltip,
+		"complexityClass":        complexityClass,
+		"complexityTooltip":      complexityTooltip,
+		"usageFrequencyClass":    usageFrequencyClass,
+		"usageFrequencyTooltip":  usageFrequencyTooltip,
 		"devLiveReload":     func() bool { return devLiveReload },
 		"assetURL":          assetURL,
 		"navGroups":         navGroups,
