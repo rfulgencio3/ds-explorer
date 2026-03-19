@@ -18,12 +18,12 @@ import (
 var geminiAPIKey = os.Getenv("GEMINI_API_KEY")
 
 // geminiModel is configurable via GEMINI_MODEL env var.
-// Default: gemini-2.0-flash-lite (free tier, v1beta).
+// Default: gemini-2.5-flash (stable, free tier, v1beta).
 var geminiModel = func() string {
 	if m := os.Getenv("GEMINI_MODEL"); m != "" {
 		return m
 	}
-	return "gemini-2.0-flash-lite"
+	return "gemini-2.5-flash"
 }()
 
 // geminiEndpoint builds the Gemini REST endpoint for the configured model.
