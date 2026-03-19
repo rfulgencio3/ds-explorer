@@ -1459,10 +1459,12 @@ a:hover { text-decoration: underline; }
   }
 
   /* Dropdown colapsável no mobile — fechado por padrão */
-  .site-nav .nav-dropdown-menu {
+  .site-nav .nav-dropdown-menu,
+  .site-nav .nav-dropdown:hover .nav-dropdown-menu,
+  .site-nav .nav-dropdown:focus-within .nav-dropdown-menu {
     display: none;
-    position: static;
-    transform: none;
+    position: static !important;
+    transform: none !important;
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
