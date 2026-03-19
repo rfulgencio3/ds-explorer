@@ -207,6 +207,29 @@ func callGemini(systemPrompt, question string) (string, error) {
 	return result.Candidates[0].Content.Parts[0].Text, nil
 }
 
+// ── Diagnóstico: listar modelos disponíveis ─────────────────────────────────
+
+// handleAIModels chama a ListModels API do Gemini e loga os modelos disponíveis.
+// Endpoint: GET /api/ai/models — apenas para diagnóstico, não expõe a API key.
+func handleAIModels(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if geminiAPIKey == "" {
+		http.Error(w, `{"error":"GEMINI_API_KEY not set"}`, http.StatusServiceUnavailable)
+		return
+	}
+	url := "https://generativelanguage.googleapis.com/v1beta/models?key=" + geminiAPIKey
+	resp, err := http.Get(url) //nolint:noctx
+	if err != nil {
+		http.Error(w, `{"error":"failed to contact Gemini"}`, http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	raw, _ := io.ReadAll(resp.Body)
+	log.Printf("handleAIModels: status=%d body=%s", resp.StatusCode, string(raw))
+	w.WriteHeader(resp.StatusCode)
+	w.Write(raw) //nolint:errcheck
+}
+
 // ── Handler ────────────────────────────────────────────────────────────────
 
 func handleAIAsk(w http.ResponseWriter, r *http.Request) {
