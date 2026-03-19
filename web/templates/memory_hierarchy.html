@@ -246,6 +246,120 @@
 </section>
 
 <section class="guide-section">
+  <div class="guide-section-head">
+    <p class="guide-kicker">// Gerenciamento de memoria</p>
+    <h2 class="guide-section-title">Como cada plataforma aloca e desaloca estruturas de dados</h2>
+    <p class="guide-section-copy">
+      Entender quem controla a memoria ajuda a prever onde os dados vivem — e quando desaparecem.
+    </p>
+  </div>
+
+  <div class="guide-grid guide-grid--two">
+    <article class="guide-card">
+      <p class="guide-card-kicker">Alocacao automatica</p>
+      <h2 class="guide-card-title">Stack</h2>
+      <div class="guide-copy">
+        <p>
+          Alocacao automatica ao entrar num escopo (funcao ou bloco) e desalocacao imediata ao sair.
+          O ponteiro de pilha e apenas incrementado ou decrementado — acesso ultra-rapido.
+        </p>
+        <p>
+          Limitada em tamanho (tipicamente 1 MB–8 MB por thread). Comporta variaveis locais,
+          parametros e arrays de tamanho fixo pequenos.
+        </p>
+      </div>
+    </article>
+
+    <article class="guide-card guide-card--emphasis">
+      <p class="guide-card-kicker">Alocacao dinamica</p>
+      <h2 class="guide-card-title">Heap</h2>
+      <div class="guide-copy">
+        <p>
+          Alocacao explicita ou implicita em runtime. Tamanho flexivel — limitado pela RAM disponivel.
+          Acesso mais lento por causa do bookkeeping do allocator.
+        </p>
+        <p>
+          Listas encadeadas, arvores e qualquer estrutura de tamanho variavel vivem na heap.
+          Quem controla a liberacao depende da plataforma.
+        </p>
+      </div>
+    </article>
+  </div>
+
+  <div class="storage-grid">
+    <article class="storage-card">
+      <h3>C</h3>
+      <p>
+        O programador chama <code>malloc()</code> para alocar e <code>free()</code> para liberar.
+        Sem isso, ocorre vazamento de memoria. Arrays e listas encadeadas vivem inteiramente na heap.
+        Toda estrutura de dados precisa de cleanup explicito.
+      </p>
+      <p class="storage-rating storage-rating--warning" title="O programador e responsavel por cada malloc() e free(). Sem free(), a memoria vaza; com free() errado, ha uso apos liberacao ou double free.">Gerenciamento manual</p>
+    </article>
+
+    <article class="storage-card">
+      <h3>C++</h3>
+      <p>
+        Smart pointers (<code>unique_ptr</code>, <code>shared_ptr</code>) automatizam a liberacao via
+        destruidores. <code>std::vector</code>, <code>std::list</code> e <code>std::map</code> gerenciam
+        seu proprio heap internamente. O padrao RAII garante desalocacao ao sair do escopo, sem GC.
+      </p>
+      <p class="storage-rating storage-rating--mixed" title="RAII automatiza liberacao via destruidores — sem GC, mas com controle preciso. Smart pointers eliminam a maioria dos erros de C manual.">RAII / Smart Pointers</p>
+    </article>
+
+    <article class="storage-card">
+      <h3>Go</h3>
+      <p>
+        O compilador decide em tempo de compilacao se uma variavel escapa para a heap via escape
+        analysis. Variaveis que nao escapam ficam na stack — mais rapido e sem pressao no GC.
+        O GC tricolor mark-and-sweep libera a heap em pausas curtas (tipicamente abaixo de 1 ms).
+      </p>
+      <p class="storage-rating storage-rating--good" title="GC automatico com escape analysis: o compilador aloca na stack sempre que possivel, reduzindo a pressao no GC.">GC com escape analysis</p>
+    </article>
+
+    <article class="storage-card">
+      <h3>.NET (C#)</h3>
+      <p>
+        O GC divide a heap em geracoes: Gen 0 (objetos novos), Gen 1 (sobreviventes) e Gen 2
+        (longa duracao), alem do LOH para objetos acima de 85 KB. Coletas de Gen 0 sao frequentes
+        e rapidas. <code>Dispose</code> e <code>using</code> liberam recursos nao gerenciados.
+      </p>
+      <p class="storage-rating storage-rating--good" title="GC geracional: objetos de curta duracao sao coletados rapidamente em Gen 0, reduzindo o custo de coletas mais completas.">GC geracional</p>
+    </article>
+
+    <article class="storage-card">
+      <h3>Java</h3>
+      <p>
+        Similar ao .NET: Young Generation (Eden e Survivor) e Old Generation (Tenured).
+        Diversas implementacoes: G1GC (default desde Java 9), ZGC e Shenandoah atingem pausas
+        abaixo de 10 ms. Finalizadores foram depreciados em favor de <code>AutoCloseable</code>.
+      </p>
+      <p class="storage-rating storage-rating--good" title="GC geracional com multiplas implementacoes (G1, ZGC, Shenandoah) que oferecem diferentes trocas entre throughput e latencia de pausa.">GC geracional</p>
+    </article>
+
+    <article class="storage-card">
+      <h3>Rust</h3>
+      <p>
+        O borrow checker garante em tempo de compilacao que nao ha dois donos simultaneos nem
+        referencias dangling. Sem GC — a memoria e liberada deterministicamente ao sair do escopo
+        do dono (trait <code>Drop</code>). <code>Box&lt;T&gt;</code>, <code>Vec&lt;T&gt;</code>,
+        <code>Rc&lt;T&gt;</code> e <code>Arc&lt;T&gt;</code> cobrem diferentes cenarios de posse.
+      </p>
+      <p class="storage-rating storage-rating--mixed" title="Ownership e borrow checker garantem seguranca de memoria sem GC. Liberacao deterministica ao sair do escopo, verificada em tempo de compilacao.">Ownership (sem GC)</p>
+    </article>
+  </div>
+
+  <div class="guide-callout">
+    <h2>Estruturas e o GC</h2>
+    <p>
+      Listas encadeadas criam muitos objetos pequenos na heap, aumentando a pressao do GC.
+      Arrays contiguos geram menos objetos e sao coletados de forma mais eficiente. Em linguagens
+      com GC, preferir arrays sobre listas pode reduzir pausas em aplicacoes sensiveis a latencia.
+    </p>
+  </div>
+</section>
+
+<section class="guide-section">
   <div class="guide-callout">
     <h2>Nota metodologica</h2>
     <p>
