@@ -17,8 +17,19 @@ import (
 // geminiAPIKey is read once at startup. An empty string disables the Ada IA feature.
 var geminiAPIKey = os.Getenv("GEMINI_API_KEY")
 
-// geminiEndpoint is the Gemini Flash REST endpoint.
-const geminiEndpoint = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+// geminiModel is configurable via GEMINI_MODEL env var.
+// Default: gemini-2.0-flash-lite (free tier, v1beta).
+var geminiModel = func() string {
+	if m := os.Getenv("GEMINI_MODEL"); m != "" {
+		return m
+	}
+	return "gemini-2.0-flash-lite"
+}()
+
+// geminiEndpoint builds the Gemini REST endpoint for the configured model.
+func geminiEndpoint() string {
+	return "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent"
+}
 
 // maxQuestionBytes is the maximum allowed size (in bytes) for a user question.
 const maxQuestionBytes = 512
@@ -156,7 +167,7 @@ func callGemini(systemPrompt, question string) (string, error) {
 		return "", fmt.Errorf("marshal: %w", err)
 	}
 
-	url := fmt.Sprintf("%s?key=%s", geminiEndpoint, geminiAPIKey)
+	url := fmt.Sprintf("%s?key=%s", geminiEndpoint(), geminiAPIKey)
 	resp, err := http.Post(url, "application/json", bytes.NewReader(body)) //nolint:noctx
 	if err != nil {
 		return "", fmt.Errorf("http post: %w", err)
@@ -203,7 +214,7 @@ func handleAIAsk(w http.ResponseWriter, r *http.Request) {
 
 	// Feature gate
 	if geminiAPIKey == "" {
-		log.Println("handleAIAsk: GEMINI_API_KEY not set")
+		log.Printf("handleAIAsk: GEMINI_API_KEY not set (model=%s)", geminiModel)
 		w.WriteHeader(http.StatusServiceUnavailable)
 		json.NewEncoder(w).Encode(aiAskResponse{Error: "Ada IA não está configurada no momento"})
 		return
