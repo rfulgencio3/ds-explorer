@@ -135,6 +135,7 @@ type geminiRequest struct {
 }
 
 type geminiContent struct {
+	Role  string       `json:"role,omitempty"`
 	Parts []geminiPart `json:"parts"`
 }
 
@@ -146,7 +147,7 @@ type geminiPart struct {
 func callGemini(systemPrompt, question string) (string, error) {
 	payload := geminiRequest{
 		SystemInstruction: geminiContent{Parts: []geminiPart{{Text: systemPrompt}}},
-		Contents:          []geminiContent{{Parts: []geminiPart{{Text: question}}}},
+		Contents:          []geminiContent{{Role: "user", Parts: []geminiPart{{Text: question}}}},
 	}
 
 	body, err := json.Marshal(payload)
@@ -162,7 +163,13 @@ func callGemini(systemPrompt, question string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("gemini API status %d", resp.StatusCode)
+		var errBody struct {
+			Error struct {
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&errBody)
+		return "", fmt.Errorf("gemini API status %d: %s", resp.StatusCode, errBody.Error.Message)
 	}
 
 	var result struct {
