@@ -18,7 +18,7 @@ import (
 var geminiAPIKey = os.Getenv("GEMINI_API_KEY")
 
 // geminiEndpoint is the Gemini Flash REST endpoint.
-const geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+const geminiEndpoint = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 
 // maxQuestionBytes is the maximum allowed size (in bytes) for a user question.
 const maxQuestionBytes = 512
