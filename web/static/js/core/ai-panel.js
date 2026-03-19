@@ -73,12 +73,28 @@ const AiPanel = (() => {
     _open ? _closePanel() : _openPanel();
   }
 
+  // Converte markdown básico do Gemini para HTML seguro.
+  // Sempre chamado APÓS _escapeHtml, portanto sem risco de XSS.
+  function _renderMarkdown(escaped) {
+    return escaped
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')   // **negrito**
+      .replace(/\*(.+?)\*/g,     '<em>$1</em>')            // *itálico*
+      .replace(/`(.+?)`/g,       '<code>$1</code>')        // `inline code`
+      .replace(/\n/g,            '<br>');
+  }
+
   function _setLoading(on) {
     _loading          = on;
     _btnSend.disabled = on;
-    _btnSend.textContent = on ? 'Aguardando Ada...' : 'Enviar';
     if (on) {
       _answer.textContent = '';
+      _status.className   = 'ada-panel-status ada-panel-status--loading';
+      _status.innerHTML   =
+        '<span class="ada-loader-dot"></span>' +
+        '<span class="ada-loader-dot"></span>' +
+        '<span class="ada-loader-dot"></span>' +
+        '<span class="ada-loader-label">Aguardando Ada...</span>';
+    } else {
       _status.textContent = '';
       _status.className   = 'ada-panel-status';
     }
@@ -93,8 +109,7 @@ const AiPanel = (() => {
   function _showAnswer(text) {
     _status.textContent = '';
     _status.className   = 'ada-panel-status';
-    // Escapa todo o conteúdo; preserva quebras de linha da resposta do Gemini
-    _answer.innerHTML = _escapeHtml(text).replace(/\n/g, '<br>');
+    _answer.innerHTML   = _renderMarkdown(_escapeHtml(text));
   }
 
   async function _send() {

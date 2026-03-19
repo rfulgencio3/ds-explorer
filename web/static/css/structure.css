@@ -867,6 +867,38 @@ details[open] > .info-block-title::after {
 .ada-panel-status--error { color: var(--color-danger); }
 .ada-panel-status--rate  { color: var(--color-warning); }
 
+/* Loader de três pontos */
+.ada-panel-status--loading {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ada-loader-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-left: 0.2rem;
+}
+
+.ada-loader-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: inline-block;
+  animation: ada-bounce 1.2s infinite ease-in-out;
+}
+
+.ada-loader-dot:nth-child(1) { animation-delay: 0s; }
+.ada-loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.ada-loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ada-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1;   }
+}
+
 .ada-panel-answer {
   display: none;
   font-size: 0.83rem;
