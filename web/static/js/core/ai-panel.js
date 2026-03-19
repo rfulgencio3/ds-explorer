@@ -1,11 +1,11 @@
 /**
- * ai-panel.js — Painel "Ada IA" para páginas de estrutura de dados.
+ * ai-panel.js — Widget flutuante "Ada IA" para páginas de estrutura de dados.
  *
  * Ada IA é uma assistente educacional descontraída, criada em homenagem a
  * Ada Lovelace — a primeira programadora da história.
  *
  * API pública:
- *   AiPanel.init(structureId)  — inicializa o painel para a estrutura atual
+ *   AiPanel.init(structureId)  — inicializa o widget para a estrutura atual
  *
  * Comunica com o backend via POST /api/ai/ask.
  * A API key Gemini fica exclusivamente no servidor — nunca exposta ao browser.
@@ -16,12 +16,16 @@ const AiPanel = (() => {
   // ── Estado privado ──────────────────────────────────────────────────────
   let _structureId = '';
   let _loading     = false;
+  let _open        = false;
 
   // ── Refs DOM (resolvidas em init) ───────────────────────────────────────
-  let _textarea = null;
-  let _btnSend  = null;
-  let _answer   = null;
-  let _status   = null;
+  let _floatBtn   = null;
+  let _floatPanel = null;
+  let _closeBtn   = null;
+  let _textarea   = null;
+  let _btnSend    = null;
+  let _answer     = null;
+  let _status     = null;
 
   // ── Helpers privados ────────────────────────────────────────────────────
 
@@ -34,6 +38,23 @@ const AiPanel = (() => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#x27;');
+  }
+
+  function _openPanel() {
+    _open = true;
+    _floatPanel.classList.add('ada-float-panel--open');
+    _floatPanel.setAttribute('aria-hidden', 'false');
+    _textarea.focus();
+  }
+
+  function _closePanel() {
+    _open = false;
+    _floatPanel.classList.remove('ada-float-panel--open');
+    _floatPanel.setAttribute('aria-hidden', 'true');
+  }
+
+  function _togglePanel() {
+    _open ? _closePanel() : _openPanel();
   }
 
   function _setLoading(on) {
@@ -101,23 +122,28 @@ const AiPanel = (() => {
   // ── API pública ─────────────────────────────────────────────────────────
 
   /**
-   * Inicializa o painel Ada IA para a estrutura indicada.
+   * Inicializa o widget Ada IA para a estrutura indicada.
    * Deve ser chamado após o DOM estar pronto.
    * @param {string} structureId - id da estrutura (ex: "array")
    */
   function init(structureId) {
     _structureId = structureId;
 
-    _textarea = document.getElementById('ada-question');
-    _btnSend  = document.getElementById('ada-btn-send');
-    _answer   = document.getElementById('ada-answer');
-    _status   = document.getElementById('ada-status');
+    _floatBtn   = document.getElementById('ada-float-btn');
+    _floatPanel = document.getElementById('ada-float-panel');
+    _closeBtn   = document.getElementById('ada-float-close');
+    _textarea   = document.getElementById('ada-question');
+    _btnSend    = document.getElementById('ada-btn-send');
+    _answer     = document.getElementById('ada-answer');
+    _status     = document.getElementById('ada-status');
 
-    if (!_textarea || !_btnSend || !_answer || !_status) {
+    if (!_floatBtn || !_floatPanel || !_textarea || !_btnSend || !_answer || !_status) {
       console.warn('[ds-explorer] AiPanel: elementos do DOM não encontrados');
       return;
     }
 
+    _floatBtn.addEventListener('click', _togglePanel);
+    _closeBtn.addEventListener('click', _closePanel);
     _btnSend.addEventListener('click', _send);
 
     // Ctrl+Enter / Cmd+Enter envia sem quebrar a linha
@@ -126,6 +152,11 @@ const AiPanel = (() => {
         e.preventDefault();
         _send();
       }
+    });
+
+    // Escape fecha o painel
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && _open) _closePanel();
     });
   }
 

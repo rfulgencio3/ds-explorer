@@ -218,35 +218,6 @@
           </div>
         </details>
 
-        <!-- Ada IA -->
-        <details class="info-block">
-          <summary class="info-block-title">Pergunte à Ada IA</summary>
-          <div class="info-block-body ada-panel-body">
-            <div class="ada-panel-brand">
-              <span class="ada-panel-brand-name">✦ Ada IA</span>
-              <span class="ada-panel-brand-sub">— em homenagem a Ada Lovelace, a primeira programadora da história</span>
-            </div>
-            <p class="ada-panel-hint">
-              Ficou com dúvida? Pergunte à Ada! Ela responde em português,
-              focada nesta estrutura de dados.
-            </p>
-            <textarea
-              id="ada-question"
-              class="ada-panel-textarea"
-              rows="3"
-              maxlength="512"
-              placeholder="Ex: Quando devo preferir esta estrutura a um array?"
-              aria-label="Pergunta para a Ada IA"
-            ></textarea>
-            <div class="ada-panel-actions">
-              <button id="ada-btn-send" class="btn btn--primary">Enviar</button>
-              <span class="ada-panel-shortcut">Ctrl+Enter para enviar</span>
-            </div>
-            <div id="ada-status" class="ada-panel-status" aria-live="polite"></div>
-            <div id="ada-answer" class="ada-panel-answer" aria-live="polite"></div>
-          </div>
-        </details>
-
       </div><!-- /info-sections -->
     </section><!-- /viz-panel -->
   </div><!-- /structure-layout -->
@@ -294,4 +265,43 @@ AiPanel.init(window.__STRUCTURE_ID__);
   document.body.appendChild(script);
 })();
 </script>
+
+<!-- ===== ADA IA — Widget flutuante ===== -->
+<div id="ada-widget">
+
+  <!-- Painel de chat -->
+  <div id="ada-float-panel" class="ada-float-panel" aria-hidden="true" role="dialog" aria-label="Ada IA">
+    <div class="ada-float-header">
+      <div class="ada-float-title">
+        <span class="ada-float-brand">✦ Ada IA</span>
+        <span class="ada-float-sub">em homenagem a Ada Lovelace</span>
+      </div>
+      <button id="ada-float-close" class="ada-float-close" aria-label="Fechar Ada IA">✕</button>
+    </div>
+    <div class="ada-float-body">
+      <p class="ada-float-hint">Ficou com dúvida? Pergunte à Ada! Ela responde em português, focada nesta estrutura.</p>
+      <textarea
+        id="ada-question"
+        class="ada-panel-textarea"
+        rows="3"
+        maxlength="512"
+        placeholder="Ex: Quando devo preferir esta estrutura a um array?"
+        aria-label="Pergunta para a Ada IA"
+      ></textarea>
+      <div class="ada-panel-actions">
+        <button id="ada-btn-send" class="btn btn--primary">Enviar</button>
+        <span class="ada-panel-shortcut">Ctrl+Enter para enviar</span>
+      </div>
+      <div id="ada-status" class="ada-panel-status" aria-live="polite"></div>
+      <div id="ada-answer" class="ada-panel-answer" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- Botão flutuante -->
+  <button id="ada-float-btn" class="ada-float-btn" aria-label="Pergunte à Ada IA" title="Pergunte à Ada IA">
+    <span class="ada-float-btn-icon">✦</span>
+    <span class="ada-float-btn-label">Ada IA</span>
+  </button>
+
+</div>
 {{end}}
