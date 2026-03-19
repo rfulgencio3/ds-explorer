@@ -777,6 +777,15 @@ details[open] > .info-block-title::after {
   font-style: italic;
 }
 
+.ada-float-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.ada-float-link:hover { color: var(--color-text); }
+
 .ada-float-close {
   background: none;
   border: none;
