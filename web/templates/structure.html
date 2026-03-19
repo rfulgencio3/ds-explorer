@@ -236,11 +236,6 @@
 <script src="{{assetURL "/static/js/core/structure-ui.js"}}"></script>
 <script src="{{assetURL "/static/js/core/ai-panel.js"}}"></script>
 
-<!-- Inicializar Ada IA (independente da estrutura específica) -->
-<script>
-AiPanel.init(window.__STRUCTURE_ID__);
-</script>
-
 <!-- Estrutura específica (carregada dinamicamente) -->
 <script>
 (function() {
@@ -304,4 +299,7 @@ AiPanel.init(window.__STRUCTURE_ID__);
   </button>
 
 </div>
+
+<!-- Inicializar Ada IA após o widget estar no DOM -->
+<script>AiPanel.init(window.__STRUCTURE_ID__);</script>
 {{end}}

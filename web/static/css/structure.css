@@ -674,7 +674,7 @@ details[open] > .info-block-title::after {
 /* Contentor posicionado no canto inferior direito */
 #ada-widget {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 5.5rem;
   right: 1.5rem;
   z-index: 1000;
   display: flex;
@@ -864,5 +864,5 @@ details[open] > .info-block-title::after {
 /* Responsivo: painel menor em telas pequenas */
 @media (max-width: 480px) {
   .ada-float-panel { width: calc(100vw - 2rem); }
-  #ada-widget { right: 1rem; bottom: 1rem; }
+  #ada-widget { right: 1rem; bottom: 5rem; }
 }
