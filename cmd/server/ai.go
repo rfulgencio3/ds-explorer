@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -17,7 +18,7 @@ import (
 var geminiAPIKey = os.Getenv("GEMINI_API_KEY")
 
 // geminiEndpoint is the Gemini Flash REST endpoint.
-const geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+const geminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 // maxQuestionBytes is the maximum allowed size (in bytes) for a user question.
 const maxQuestionBytes = 512
@@ -163,13 +164,18 @@ func callGemini(systemPrompt, question string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(resp.Body)
 		var errBody struct {
 			Error struct {
 				Message string `json:"message"`
 			} `json:"error"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&errBody)
-		return "", fmt.Errorf("gemini API status %d: %s", resp.StatusCode, errBody.Error.Message)
+		_ = json.Unmarshal(raw, &errBody)
+		msg := errBody.Error.Message
+		if msg == "" {
+			msg = string(raw)
+		}
+		return "", fmt.Errorf("gemini API status %d: %s", resp.StatusCode, msg)
 	}
 
 	var result struct {
