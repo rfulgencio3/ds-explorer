@@ -710,7 +710,19 @@ details[open] > .info-block-title::after {
 
 .ada-float-btn:active { transform: translateY(0); }
 
-.ada-float-btn-icon { font-size: 1rem; }
+.ada-float-btn-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  /* A imagem tem o mesmo azul do botão — seamless */
+  filter: brightness(1.08);
+  transition: filter 0.15s;
+}
+
+.ada-float-btn:hover .ada-float-btn-img {
+  filter: brightness(1.2);
+}
 
 /* Painel de chat — oculto por padrão */
 .ada-float-panel {
