@@ -354,13 +354,59 @@
     </article>
   </div>
 
-  <div class="guide-callout">
-    <h2>Estruturas e o GC</h2>
-    <p>
-      Listas encadeadas criam muitos objetos pequenos na heap, aumentando a pressao do GC.
-      Arrays contiguos geram menos objetos e sao coletados de forma mais eficiente. Em linguagens
-      com GC, preferir arrays sobre listas pode reduzir pausas em aplicacoes sensiveis a latencia.
-    </p>
+  <div class="guide-section-head" style="margin-top: 1.5rem">
+    <p class="guide-kicker">Impacto nas estruturas</p>
+    <h3 class="guide-section-title">O que o modelo de memoria muda na pratica</h3>
+  </div>
+
+  <div class="guide-grid guide-grid--three">
+    <article class="guide-card">
+      <p class="guide-card-kicker">GC — Java · .NET · Go</p>
+      <h2 class="guide-card-title">Listas criam pressao no GC</h2>
+      <div class="guide-copy">
+        <p>
+          Cada no de uma lista encadeada e um objeto separado na heap. Com muitos nos,
+          as coletas de Gen 0 ficam mais frequentes e o GC precisa rastrear mais referencias.
+        </p>
+        <p>
+          Arrays contiguos geram um unico objeto: uma alocacao, uma coleta.
+          Em aplicacoes sensiveis a latencia, preferir arrays sobre listas pode reduzir pausas perceptiveis.
+        </p>
+      </div>
+    </article>
+
+    <article class="guide-card">
+      <p class="guide-card-kicker">Manual — C · C++</p>
+      <h2 class="guide-card-title">Custo explicito por no</h2>
+      <div class="guide-copy">
+        <p>
+          Em C, cada no exige <code>malloc()</code> + <code>free()</code> separados.
+          Em C++, RAII garante destruicao automatica, mas cada no continua sendo
+          uma alocacao individual na heap — mais fragmentada que um array.
+        </p>
+        <p>
+          Um array contigo precisa de uma unica alocacao. A liberacao e simples e previsivel,
+          sem risco de vazamento por no esquecido.
+        </p>
+      </div>
+    </article>
+
+    <article class="guide-card">
+      <p class="guide-card-kicker">Ownership — Rust</p>
+      <h2 class="guide-card-title">Controle sem GC</h2>
+      <div class="guide-copy">
+        <p>
+          <code>Vec&lt;T&gt;</code> aloca um unico bloco contiguos na heap, liberado
+          deterministicamente ao sair do escopo do dono — sem pausas, sem GC.
+          Listas encadeadas com <code>Box&lt;T&gt;</code> por no sao mais fragmentadas,
+          mas ainda previseis: cada no e liberado ao sair do proprio escopo.
+        </p>
+        <p>
+          O borrow checker elimina uso-apos-liberacao e double-free em tempo de compilacao,
+          sem custo algum em runtime.
+        </p>
+      </div>
+    </article>
   </div>
 </section>
 
