@@ -343,6 +343,16 @@
     </article>
 
     <article class="storage-card">
+      <h3>Python</h3>
+      <p>
+        Tudo em Python e um objeto na heap — inclusive inteiros e strings.
+        O gerenciamento combina contagem de referencias (CPython) com um GC ciclico para
+        coletar referencias circulares. Quando o contador chega a zero, o objeto e liberado imediatamente.
+      </p>
+      <p class="storage-rating storage-rating--good" title="GC por contagem de referencias: libera objetos imediatamente ao sair do escopo, sem pausas longas. O GC ciclico resolve referencias circulares separadamente.">GC por contagem de ref</p>
+    </article>
+
+    <article class="storage-card">
       <h3>Rust</h3>
       <p>
         O borrow checker garante em tempo de compilacao que nao ha dois donos simultaneos nem
@@ -435,4 +445,41 @@
     <a href="https://www.intel.com/content/www/us/en/support/articles/000057727/processors.html" class="source-link" target="_blank" rel="noopener noreferrer">Intel Support — How to find L1, L2 and L3 cache</a>
   </div>
 </section>
+
+<script src="{{assetURL "/static/js/core/ai-panel.js"}}"></script>
+
+<div id="ada-widget">
+  <div id="ada-float-panel" class="ada-float-panel" aria-hidden="true" role="dialog" aria-label="Ada IA">
+    <div class="ada-float-header">
+      <div class="ada-float-title">
+        <span class="ada-float-brand">✦ Ada IA</span>
+        <span class="ada-float-sub">em homenagem a <a href="https://pt.wikipedia.org/wiki/Ada_Lovelace" target="_blank" rel="noopener noreferrer" class="ada-float-link">Ada Lovelace</a></span>
+      </div>
+      <button id="ada-float-close" class="ada-float-close" aria-label="Fechar Ada IA">✕</button>
+    </div>
+    <div class="ada-float-body">
+      <p class="ada-float-hint">Ficou com dúvida sobre memória e cache? Pergunte à Ada! Ela responde em português, focada neste tema.</p>
+      <textarea
+        id="ada-question"
+        class="ada-panel-textarea"
+        rows="3"
+        maxlength="512"
+        placeholder="Ex: Qual a diferença entre stack e heap?"
+        aria-label="Pergunta para a Ada IA"
+      ></textarea>
+      <div class="ada-panel-actions">
+        <button id="ada-btn-send" class="btn btn--primary">Enviar</button>
+        <span class="ada-panel-shortcut">Ctrl+Enter para enviar</span>
+      </div>
+      <div id="ada-status" class="ada-panel-status" aria-live="polite"></div>
+      <div id="ada-answer" class="ada-panel-answer" aria-live="polite"></div>
+    </div>
+  </div>
+  <button id="ada-float-btn" class="ada-float-btn" aria-label="Pergunte à Ada IA" title="Pergunte à Ada IA">
+    <img src="{{assetURL "/static/img/adaia.png"}}" class="ada-float-btn-img" alt="Ada IA">
+    <span class="ada-float-btn-label">Ada IA</span>
+  </button>
+</div>
+
+<script>AiPanel.init('memory-hierarchy');</script>
 {{end}}

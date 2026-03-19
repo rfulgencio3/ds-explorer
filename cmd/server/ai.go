@@ -96,6 +96,27 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
+// ── Page contexts (non-structure pages that support Ada IA) ────────────────
+
+// pageContexts maps page IDs to their topic description for Ada IA.
+// These are validated via allowlist — same security model as isKnownID.
+var pageContexts = map[string]string{
+	"memory-hierarchy": "hierarquia de memória (L1/L2/L3/RAM, localidade de cache, alocação e desalocação de memória em C, C++, Go, .NET, Java, Python e Rust)",
+	"big-o":            "notação assintótica Big-O (O(1), O(log n), O(n), O(n log n), O(n²), O(2^n), O(n!)), análise de complexidade de tempo e espaço, e comparação de crescimento de funções",
+}
+
+// buildPageSystemPrompt builds the Ada IA system prompt for a non-structure guide page.
+func buildPageSystemPrompt(pageDesc string) string {
+	var sb strings.Builder
+	sb.WriteString("Você é Ada IA, uma assistente educacional simpática e descontraída, ")
+	sb.WriteString("criada em homenagem a Ada Lovelace — a primeira programadora da história. ")
+	sb.WriteString("Responda SEMPRE em português do Brasil, de forma clara, acolhedora e didática. ")
+	sb.WriteString("Use linguagem acessível, com exemplos práticos quando pertinente. ")
+	fmt.Fprintf(&sb, "O aluno está estudando: %s. ", pageDesc)
+	sb.WriteString("Foque exclusivamente neste tema. Não responda sobre outros assuntos.\n")
+	return sb.String()
+}
+
 // ── System prompt ──────────────────────────────────────────────────────────
 
 // buildSystemPrompt builds the Ada IA system prompt with context from the structure JSON.
@@ -259,11 +280,13 @@ func handleAIAsk(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate structureId via allowlist (prevents path traversal)
+	// Validate contextId via allowlist — accepts structure IDs and page context IDs
 	if !isKnownID(req.StructureID) {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(aiAskResponse{Error: "estrutura inválida"})
-		return
+		if _, ok := pageContexts[req.StructureID]; !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(aiAskResponse{Error: "contexto inválido"})
+			return
+		}
 	}
 
 	// Validate question
@@ -279,25 +302,30 @@ func handleAIAsk(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load structure context
-	rawJSON, err := loadStructureJSON(req.StructureID)
-	if err != nil {
-		log.Printf("handleAIAsk: loadStructureJSON(%s): %v", req.StructureID, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(aiAskResponse{Error: "erro interno"})
-		return
-	}
-
-	var structData map[string]any
-	if err := json.Unmarshal(rawJSON, &structData); err != nil {
-		log.Printf("handleAIAsk: unmarshal structData: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(aiAskResponse{Error: "erro interno"})
-		return
+	// Build system prompt — structure pages load JSON; guide pages use inline context
+	var systemPrompt string
+	if isKnownID(req.StructureID) {
+		rawJSON, err := loadStructureJSON(req.StructureID)
+		if err != nil {
+			log.Printf("handleAIAsk: loadStructureJSON(%s): %v", req.StructureID, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(aiAskResponse{Error: "erro interno"})
+			return
+		}
+		var structData map[string]any
+		if err := json.Unmarshal(rawJSON, &structData); err != nil {
+			log.Printf("handleAIAsk: unmarshal structData: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(aiAskResponse{Error: "erro interno"})
+			return
+		}
+		systemPrompt = buildSystemPrompt(structData)
+	} else {
+		systemPrompt = buildPageSystemPrompt(pageContexts[req.StructureID])
 	}
 
 	// Call Gemini
-	answer, err := callGemini(buildSystemPrompt(structData), question)
+	answer, err := callGemini(systemPrompt, question)
 	if err != nil {
 		log.Printf("handleAIAsk: callGemini: %v", err)
 		w.WriteHeader(http.StatusBadGateway)
