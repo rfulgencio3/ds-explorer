@@ -131,8 +131,7 @@ func buildSystemPrompt(structData map[string]any) string {
 // ── Gemini API call ────────────────────────────────────────────────────────
 
 type geminiRequest struct {
-	SystemInstruction geminiContent   `json:"system_instruction"`
-	Contents          []geminiContent `json:"contents"`
+	Contents []geminiContent `json:"contents"`
 }
 
 type geminiContent struct {
@@ -145,10 +144,11 @@ type geminiPart struct {
 }
 
 // callGemini sends the question to the Gemini Flash REST API and returns the answer text.
+// The system prompt is prepended to the user message — compatible with the stable v1 API.
 func callGemini(systemPrompt, question string) (string, error) {
+	combined := systemPrompt + "\n\nPergunta do aluno: " + question
 	payload := geminiRequest{
-		SystemInstruction: geminiContent{Parts: []geminiPart{{Text: systemPrompt}}},
-		Contents:          []geminiContent{{Role: "user", Parts: []geminiPart{{Text: question}}}},
+		Contents: []geminiContent{{Role: "user", Parts: []geminiPart{{Text: combined}}}},
 	}
 
 	body, err := json.Marshal(payload)
