@@ -1419,7 +1419,8 @@ a:hover { text-decoration: underline; }
     left: 0;
     right: 0;
     bottom: 0;
-    overflow-y: auto;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
     background: var(--color-bg);
     border-top: 1px solid var(--color-border);
     flex-direction: column;
@@ -1457,8 +1458,9 @@ a:hover { text-decoration: underline; }
     color: var(--color-text);
   }
 
-  /* Always show dropdown menu in mobile panel */
+  /* Dropdown colapsável no mobile — fechado por padrão */
   .site-nav .nav-dropdown-menu {
+    display: none;
     position: static;
     transform: none;
     opacity: 1;
@@ -1473,6 +1475,15 @@ a:hover { text-decoration: underline; }
     width: 100%;
     margin-bottom: 0.75rem;
     transition: none;
+  }
+
+  .site-nav .nav-dropdown--mobile-open .nav-dropdown-menu {
+    display: block;
+  }
+
+  /* Rotaciona seta quando expandido */
+  .site-nav .nav-dropdown--mobile-open .nav-dropdown-arrow {
+    transform: rotate(180deg);
   }
 
   .site-main {
