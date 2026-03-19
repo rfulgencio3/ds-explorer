@@ -54,6 +54,7 @@ func main() {
 	// API
 	mux.HandleFunc("GET /api/structures", handleAPIStructures)
 	mux.HandleFunc("GET /api/structure/{id}", handleAPIStructure)
+	mux.HandleFunc("POST /api/ai/ask", handleAIAsk)
 
 	addr := serverAddr()
 	log.Printf("ds-explorer listening on %s", addr)
