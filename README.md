@@ -1,4 +1,4 @@
-# DS Explorer
+# [ds-explorer]
 
 Projeto educacional open-source para visualização interativa de estruturas de dados, notação assintótica e comportamento de memória.
 
@@ -19,6 +19,7 @@ O projeto foi pensado para apoiar o ensino de Estruturas de Dados e Algoritmos p
 - **Backend:** Go 1.22+ com `net/http`
 - **Templates:** `html/template`
 - **Frontend:** Vanilla JavaScript + CSS puro
+- **IA educacional:** Google Gemini API (via proxy Go — chave nunca exposta ao browser)
 - **Persistência:** nenhuma; as simulações rodam no navegador
 
 ## Pré-requisitos
@@ -47,6 +48,23 @@ docker build -t ds-explorer .
 docker run -p 8080:8080 ds-explorer
 ```
 
+## Ada IA — assistente educacional
+
+Cada página de estrutura conta com um widget flutuante **Ada IA**, uma assistente educacional criada em homenagem a [Ada Lovelace](https://pt.wikipedia.org/wiki/Ada_Lovelace) — a primeira programadora da história.
+
+A Ada responde perguntas em português, focada na estrutura de dados que está sendo estudada. As respostas são geradas pelo Google Gemini e o contexto da estrutura (nome, categoria, complexidade) é enviado automaticamente ao modelo.
+
+### Configuração
+
+| Variável de ambiente | Descrição | Obrigatório |
+|---|---|---|
+| `GEMINI_API_KEY` | Chave da API Google AI Studio | Sim |
+| `GEMINI_MODEL` | Modelo Gemini a usar (padrão: `gemini-2.5-flash`) | Não |
+
+Sem `GEMINI_API_KEY`, o widget exibe a mensagem _"Ada IA não está configurada no momento"_ e nenhuma chamada à API é feita.
+
+Obtenha uma chave gratuita em [aistudio.google.com](https://aistudio.google.com/app/apikey).
+
 ## Páginas disponíveis
 
 | Rota | Descrição |
@@ -59,6 +77,7 @@ docker run -p 8080:8080 ds-explorer
 | `GET /compare` | Placeholder para comparação futura |
 | `GET /api/structures` | Lista das estruturas em JSON |
 | `GET /api/structure/{id}` | Metadados JSON de uma estrutura |
+| `POST /api/ai/ask` | Proxy para o Gemini (Ada IA) |
 
 ## Estruturas atualmente implementadas
 
@@ -111,6 +130,7 @@ ds-explorer/
 - gráfico de crescimento assintótico
 - introdução a `L1`, `L2`, `L3` e `RAM`
 - simulação visual de acesso à hierarquia de memória
+- assistente IA educacional (Ada IA) integrada em cada estrutura
 
 ## Como adicionar uma nova estrutura
 
