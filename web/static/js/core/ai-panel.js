@@ -18,6 +18,22 @@ const AiPanel = (() => {
   let _loading     = false;
   let _open        = false;
 
+  // ── Evitar footer ───────────────────────────────────────────────────────
+  const _BASE_BOTTOM = 24;  // 1.5rem em px
+  const _GAP_FOOTER  = 32;  // 2rem de folga acima do footer
+
+  function _adjustForFooter(widget) {
+    const footer = document.querySelector('.site-footer');
+    if (!footer) return;
+
+    const footerTop  = footer.getBoundingClientRect().top;
+    const visible    = window.innerHeight - footerTop; // quanto do footer está visível
+
+    widget.style.bottom = (visible > 0
+      ? Math.max(_BASE_BOTTOM, visible + _GAP_FOOTER)
+      : _BASE_BOTTOM) + 'px';
+  }
+
   // ── Refs DOM (resolvidas em init) ───────────────────────────────────────
   let _floatBtn   = null;
   let _floatPanel = null;
@@ -158,6 +174,14 @@ const AiPanel = (() => {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && _open) _closePanel();
     });
+
+    // Empurra o widget para cima quando o footer fica visível
+    const widget = document.getElementById('ada-widget');
+    if (widget) {
+      const _onScroll = () => _adjustForFooter(widget);
+      window.addEventListener('scroll', _onScroll, { passive: true });
+      _onScroll(); // ajuste inicial
+    }
   }
 
   return { init };
