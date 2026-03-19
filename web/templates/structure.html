@@ -218,6 +218,35 @@
           </div>
         </details>
 
+        <!-- Ada IA -->
+        <details class="info-block">
+          <summary class="info-block-title">Pergunte à Ada IA</summary>
+          <div class="info-block-body ada-panel-body">
+            <div class="ada-panel-brand">
+              <span class="ada-panel-brand-name">✦ Ada IA</span>
+              <span class="ada-panel-brand-sub">— em homenagem a Ada Lovelace, a primeira programadora da história</span>
+            </div>
+            <p class="ada-panel-hint">
+              Ficou com dúvida? Pergunte à Ada! Ela responde em português,
+              focada nesta estrutura de dados.
+            </p>
+            <textarea
+              id="ada-question"
+              class="ada-panel-textarea"
+              rows="3"
+              maxlength="512"
+              placeholder="Ex: Quando devo preferir esta estrutura a um array?"
+              aria-label="Pergunta para a Ada IA"
+            ></textarea>
+            <div class="ada-panel-actions">
+              <button id="ada-btn-send" class="btn btn--primary">Enviar</button>
+              <span class="ada-panel-shortcut">Ctrl+Enter para enviar</span>
+            </div>
+            <div id="ada-status" class="ada-panel-status" aria-live="polite"></div>
+            <div id="ada-answer" class="ada-panel-answer" aria-live="polite"></div>
+          </div>
+        </details>
+
       </div><!-- /info-sections -->
     </section><!-- /viz-panel -->
   </div><!-- /structure-layout -->
@@ -234,6 +263,12 @@
 <script src="{{assetURL "/static/js/core/memory-panel.js"}}"></script>
 <script src="{{assetURL "/static/js/core/animator.js"}}"></script>
 <script src="{{assetURL "/static/js/core/structure-ui.js"}}"></script>
+<script src="{{assetURL "/static/js/core/ai-panel.js"}}"></script>
+
+<!-- Inicializar Ada IA (independente da estrutura específica) -->
+<script>
+AiPanel.init(window.__STRUCTURE_ID__);
+</script>
 
 <!-- Estrutura específica (carregada dinamicamente) -->
 <script>

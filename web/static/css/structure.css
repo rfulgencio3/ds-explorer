@@ -668,3 +668,104 @@ details[open] > .info-block-title::after {
   stroke: var(--color-warning);
   marker-end: url(#arrowhead-prev);
 }
+
+/* ===== ADA IA PANEL ===== */
+
+.ada-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ada-panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.ada-panel-brand-name {
+  color: var(--color-accent);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.ada-panel-brand-sub {
+  font-style: italic;
+}
+
+.ada-panel-hint {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.ada-panel-textarea {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 0.15s;
+}
+
+.ada-panel-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.ada-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ada-panel-shortcut {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.ada-panel-status {
+  font-size: 0.82rem;
+  min-height: 1.2em;
+}
+
+.ada-panel-status--error {
+  color: var(--color-danger);
+}
+
+.ada-panel-status--rate {
+  color: var(--color-warning);
+}
+
+.ada-panel-answer {
+  display: none;
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg);
+}
+
+.ada-panel-answer:not(:empty) {
+  display: block;
+}
+
+.ada-panel-answer::-webkit-scrollbar        { width: 6px; }
+.ada-panel-answer::-webkit-scrollbar-track  { background: var(--color-bg); border-radius: 3px; }
+.ada-panel-answer::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+.ada-panel-answer::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
