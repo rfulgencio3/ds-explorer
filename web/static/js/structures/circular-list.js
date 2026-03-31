@@ -92,7 +92,7 @@ function initStructurePage() {
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
     _prevAccessedId = -1;
     Animator.load([{
-      description: `Lista circular gerada com ${size} nós. O último nó aponta de volta para HEAD — sem null terminal.`,
+      description: `Lista circular gerada com ${size} nós. A animação destaca HEAD, tail e o ponteiro next que fecha o ciclo: tail.next → HEAD, sem null terminal.`,
       snapshot: _snapshot(nodes, []),
       memory:   _buildMemory(nodes, null),
     }]);

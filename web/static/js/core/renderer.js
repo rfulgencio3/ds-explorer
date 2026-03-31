@@ -50,7 +50,7 @@ const Renderer = (() => {
       drawArrows:    (snap, pos, nds) => _drawCircularArrows(pos, nds),
       typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
       showIndex:     false,
-      pointerLabels: ['head'],
+      pointerLabels: ['head', 'tail'],
     },
     stack: {
       calcPositions: (nds) => _calcStackPositions(nds),
@@ -487,8 +487,17 @@ const Renderer = (() => {
       'dominant-baseline': 'middle',
       'text-anchor': 'middle',
     });
-    label.textContent = '↺';
+    label.textContent = 'tail.next → head';
     _arrowLayer.appendChild(label);
+
+    const nextLabel = _el('text', {
+      x: first.x + NODE_W + H_GAP / 2,
+      y: first.y + NODE_H / 2 - 10,
+      class: 'structure-guide-label',
+      'text-anchor': 'middle',
+    });
+    nextLabel.textContent = 'next';
+    _arrowLayer.appendChild(nextLabel);
   }
 
   function _drawPointerLabels(positions, nodes, strategy) {

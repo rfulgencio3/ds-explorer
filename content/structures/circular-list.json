@@ -2,7 +2,7 @@
   "id": "circular-list",
   "name": "Lista Circular",
   "category": "Linear Encadeada",
-  "description": "Variação da lista encadeada simples onde o último nó aponta de volta para o HEAD, formando um ciclo. Não existe null ao final — a travessia pode começar em qualquer nó e precisa de uma condição de parada explícita (ex: contar nós ou detectar retorno ao HEAD).",
+  "description": "Variação da lista encadeada em que o último nó (tail) aponta de volta para o HEAD, formando um ciclo. Nesta visualização, a animação destaca head, tail e a ligação next que fecha o loop; em variantes mais completas, uma lista circular também pode manter prev + next em cada nó. Não existe null ao final — a travessia precisa de uma condição de parada explícita, como detectar retorno ao HEAD.",
   "complexity": {
     "access":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
     "search":        { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
