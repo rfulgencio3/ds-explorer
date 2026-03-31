@@ -1,0 +1,38 @@
+{
+  "id": "queue",
+  "name": "Fila (Queue)",
+  "category": "Linear Restrita",
+  "description": "Estrutura FIFO (First In, First Out): o primeiro elemento inserido é o primeiro a ser removido. Inserção ocorre na extremidade traseira (rear) e remoção na frente (front). Com ponteiros front e rear, enqueue e dequeue são ambos O(1).",
+  "complexity": {
+    "access":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "search":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertEnd":    { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "delete":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "space":        "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Processamento de tarefas em ordem de chegada (FIFO)",
+      "Buffers de I/O e filas de impressão",
+      "Algoritmo BFS (busca em largura) em grafos",
+      "Escalonamento de processos em sistemas operacionais"
+    ],
+    "notRecommended": [
+      "Acesso aleatório por índice",
+      "Quando o elemento mais recente precisa sair primeiro (use pilha)",
+      "Situações com prioridade variável entre elementos (use heap)"
+    ],
+    "realWorldExamples": [
+      "Fila de impressão de documentos",
+      "Requisições HTTP em servidores web",
+      "Fila de mensagens (Kafka, RabbitMQ)",
+      "Algoritmo BFS para menor caminho em grafos"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "var fila = new Queue<int>();\n\n// Enqueue — O(1)\nfila.Enqueue(10);\nfila.Enqueue(20);\nfila.Enqueue(30);\n\n// Peek — O(1), não remove\nint frente = fila.Peek();  // 10\n\n// Dequeue — O(1)\nint removido = fila.Dequeue();  // 10\n\n// Verificar vazio\nbool vazia = fila.Count == 0;",
+    "go": "// Go usa channel ou slice como fila\nfila := make([]int, 0)\n\n// Enqueue — O(1) amortizado\nfila = append(fila, 10)\nfila = append(fila, 20)\nfila = append(fila, 30)\n\n// Peek — O(1)\nfrente := fila[0]  // 10\n\n// Dequeue — O(1) com slice reslicing\nremovido := fila[0]\nfila = fila[1:]  // 20, 30",
+    "python": "from collections import deque\n\nfila = deque()\n\n# Enqueue — O(1)\nfila.append(10)\nfila.append(20)\nfila.append(30)\n\n# Peek — O(1)\nfrente = fila[0]  # 10\n\n# Dequeue — O(1)\nremovido = fila.popleft()  # 10\n\nprint(list(fila))  # [20, 30]",
+    "javascript": "// Array como fila (shift é O(n)); para O(1) use deque customizado\nconst fila = [];\n\n// Enqueue — O(1)\nfila.push(10);\nfila.push(20);\nfila.push(30);\n\n// Peek — O(1)\nconst frente = fila[0];  // 10\n\n// Dequeue — O(n) com Array.shift; use LinkedList para O(1)\nconst removido = fila.shift();  // 10\n\nconsole.log(fila);  // [20, 30]"
+  }
+}

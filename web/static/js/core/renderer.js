@@ -8,7 +8,7 @@
  *
  * Snapshot format expected by draw():
  * {
- *   type: 'array' | 'singly' | 'doubly' | 'circular',
+ *   type: 'array' | 'singly' | 'doubly' | 'circular' | 'stack' | 'queue',
  *   nodes: [{ id, value, state }],   // state: 'neutral'|'visiting'|'success'|'danger'|'warning'
  *   pointers: { HEAD: <nodeId>, TAIL: <nodeId> }
  * }
@@ -50,6 +50,18 @@ const Renderer = (() => {
       typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
       showIndex:     false,
       pointerLabels: ['head'],
+    },
+    stack: {
+      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
+      showIndex:     false,
+      pointerLabels: ['top'],
+    },
+    queue: {
+      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
+      showIndex:     false,
+      pointerLabels: ['front', 'rear'],
     },
   };
 
@@ -381,6 +393,15 @@ const Renderer = (() => {
     }
     if (strategy.pointerLabels.includes('tail')) {
       _drawPointerLabel('tail', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
+    }
+    if (strategy.pointerLabels.includes('top')) {
+      _drawPointerLabel('top', positions[0].x, positions[0].y);
+    }
+    if (strategy.pointerLabels.includes('front')) {
+      _drawPointerLabel('front', positions[0].x, positions[0].y);
+    }
+    if (strategy.pointerLabels.includes('rear')) {
+      _drawPointerLabel('rear', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
     }
   }
 

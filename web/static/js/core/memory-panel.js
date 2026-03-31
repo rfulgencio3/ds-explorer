@@ -52,6 +52,24 @@ const MemoryPanel = (() => {
       // 4B dados + 12B ponteiro/padding → 75% overhead
       ptrOverhead: '75%  (ptr 12B / 16B)',
     },
+    stack: {
+      bytesPerElem: 16,
+      allocType:   'Dinamica (heap) - pilha encadeada',
+      elemLabel:   'Por no',
+      cacheLineElems: 4,
+      baseAddr: 0x4000,
+      fragmented: true,
+      ptrOverhead: '75%  (ptr 12B / 16B)',
+    },
+    queue: {
+      bytesPerElem: 16,
+      allocType:   'Dinamica (heap) - fila encadeada',
+      elemLabel:   'Por no',
+      cacheLineElems: 4,
+      baseAddr: 0x5000,
+      fragmented: true,
+      ptrOverhead: '75%  (ptr 12B / 16B)',
+    },
     doubly: {
       bytesPerElem: 24,         // value(4) + next(8) + prev(8) + padding(4) = 24B
       allocType:   'Dinâmica (heap)',

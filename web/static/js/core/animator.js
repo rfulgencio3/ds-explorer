@@ -20,7 +20,7 @@ const Animator = (() => {
   let _current = -1;
   let _timer   = null;
 
-  // Speed map: slider value → ms per step
+  // Speed map: slider value -> ms per step
   const SPEEDS = { 1: 1200, 2: 650, 3: 300 };
 
   const btnPrev    = document.getElementById('btn-prev');
@@ -51,18 +51,18 @@ const Animator = (() => {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     return escaped.replace(
-      /(O\((?:log n|n|1)\)|0x[0-9A-Fa-f]+|\bHIT\b|\bMISS\b|ENCONTRADO!?|\bnullptr?\b|\b(?:head|HEAD|tail|TAIL|next|prev)\b|↺|\b\d+\b|[→←])/g,
+      /(O\((?:log n|n|1)\)|0x[0-9A-Fa-f]+|\bHIT\b|\bMISS\b|ENCONTRADO!?|\bnullptr?\b|\b(?:head|HEAD|tail|TAIL|top|front|rear|next|prev|push|pop|peek|enqueue|dequeue)\b|↺|\b\d+\b|[→←])/gi,
       (m) => {
-        if (/^O\(/.test(m))                         return `<span class="hl-bigO">${m}</span>`;
-        if (/^0x/.test(m))                          return `<span class="hl-addr">${m}</span>`;
-        if (m === 'HIT')                            return `<span class="hl-hit">${m}</span>`;
-        if (m === 'MISS')                           return `<span class="hl-miss">${m}</span>`;
-        if (/^ENCONTRADO/.test(m))                  return `<span class="hl-found">${m}</span>`;
-        if (/^null/.test(m))                        return `<span class="hl-null">${m}</span>`;
-        if (/^(head|HEAD|tail|TAIL|next|prev)$/.test(m)) return `<span class="hl-kw">${m}</span>`;
-        if (m === '↺')                              return `<span class="hl-circular">${m}</span>`;
-        if (/^\d+$/.test(m))                        return `<span class="hl-num">${m}</span>`;
-        if (/^[→←]$/.test(m))                      return `<span class="hl-arrow">${m}</span>`;
+        if (/^O\(/.test(m)) return `<span class="hl-bigO">${m}</span>`;
+        if (/^0x/.test(m)) return `<span class="hl-addr">${m}</span>`;
+        if (m === 'HIT') return `<span class="hl-hit">${m}</span>`;
+        if (m === 'MISS') return `<span class="hl-miss">${m}</span>`;
+        if (/^ENCONTRADO/.test(m)) return `<span class="hl-found">${m}</span>`;
+        if (/^null/i.test(m)) return `<span class="hl-null">${m}</span>`;
+        if (/^(head|HEAD|tail|TAIL|top|front|rear|next|prev|push|pop|peek|enqueue|dequeue)$/i.test(m)) return `<span class="hl-kw">${m}</span>`;
+        if (m === '↺') return `<span class="hl-circular">${m}</span>`;
+        if (/^\d+$/.test(m)) return `<span class="hl-num">${m}</span>`;
+        if (/^[→←]$/.test(m)) return `<span class="hl-arrow">${m}</span>`;
         return m;
       }
     );

@@ -1,0 +1,38 @@
+{
+  "id": "stack",
+  "name": "Pilha (Stack)",
+  "category": "Linear Restrita",
+  "description": "Estrutura LIFO (Last In, First Out): o último elemento inserido é o primeiro a ser removido. O acesso é restrito ao topo (top). Implementada como lista encadeada em que o ponteiro top aponta para o nó mais recente; push e pop são O(1) por operarem sempre no topo.",
+  "complexity": {
+    "access":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "search":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":  { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "delete":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "space":        "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Desfazer/refazer (undo/redo) em editores de texto",
+      "Chamadas de função (call stack) e recursão",
+      "Parsing de expressões matemáticas e parênteses",
+      "Algoritmos de backtracking (labirintos, DFS)"
+    ],
+    "notRecommended": [
+      "Acesso aleatório por índice",
+      "Iteração em ordem de inserção (use fila)",
+      "Situações em que o elemento mais antigo precisa sair primeiro"
+    ],
+    "realWorldExamples": [
+      "Histórico de navegação no browser (botão Voltar)",
+      "Ctrl+Z em editores de código",
+      "Pilha de execução de funções (stack trace)",
+      "Algoritmo de DFS em grafos"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "var stack = new Stack<int>();\n\n// Push — O(1)\nstack.Push(10);\nstack.Push(20);\nstack.Push(30);\n\n// Peek — O(1), não remove\nint topo = stack.Peek();  // 30\n\n// Pop — O(1)\nint removido = stack.Pop();  // 30\n\n// Verificar vazio\nbool vazia = stack.Count == 0;",
+    "go": "// Go não tem Stack nativo; usa slice como pilha\nvar stack []int\n\n// Push — O(1) amortizado\nstack = append(stack, 10)\nstack = append(stack, 20)\nstack = append(stack, 30)\n\n// Peek — O(1)\ntopo := stack[len(stack)-1]  // 30\n\n// Pop — O(1)\nremovido := stack[len(stack)-1]\nstack = stack[:len(stack)-1]  // 20",
+    "python": "from collections import deque\n\n# deque como pilha (appendleft/popleft = O(1))\npilha = deque()\n\n# Push — O(1)\npilha.appendleft(10)\npilha.appendleft(20)\npilha.appendleft(30)\n\n# Peek — O(1)\ntopo = pilha[0]  # 30\n\n# Pop — O(1)\nremovido = pilha.popleft()  # 30",
+    "javascript": "// Array como pilha — push/pop no final são O(1) amortizado\nconst stack = [];\n\n// Push\nstack.push(10);\nstack.push(20);\nstack.push(30);\n\n// Peek\nconst topo = stack[stack.length - 1];  // 30\n\n// Pop\nconst removido = stack.pop();  // 30\n\nconsole.log(stack);  // [10, 20]"
+  }
+}

@@ -88,13 +88,13 @@ Obtenha uma chave gratuita em [aistudio.google.com](https://aistudio.google.com/
 | Lista Encadeada Simples | `singly-linked-list` | Linear | Encadeada | Disponível |
 | Lista Encadeada Dupla | `doubly-linked-list` | Linear | Encadeada | Disponível |
 | Lista Circular | `circular-list` | Linear | Encadeada | Disponível |
+| Pilha (Stack) | `stack` | Linear | Restrita | Disponível |
+| Fila (Queue) | `queue` | Linear | Restrita | Disponível |
 
 ## Estruturas planejadas
 
 | Estrutura | Categoria | Subtipo | Status |
 |---|---|---|---|
-| Pilha (Stack) | Linear | Restrita | Em breve |
-| Fila (Queue) | Linear | Restrita | Em breve |
 | Fila Circular | Linear | Restrita | Em breve |
 | Deque | Linear | Restrita | Em breve |
 | Árvore Binária de Busca | Árvore | - | Em breve |
