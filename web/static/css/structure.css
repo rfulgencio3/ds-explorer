@@ -669,6 +669,32 @@ details[open] > .info-block-title::after {
   marker-end: url(#arrowhead-prev);
 }
 
+.structure-guide {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.structure-guide--stack {
+  stroke: var(--color-primary);
+}
+
+.structure-guide--queue {
+  stroke: var(--color-accent);
+  stroke-dasharray: 8 6;
+  opacity: 0.55;
+}
+
+.structure-guide-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--color-text-muted);
+  letter-spacing: 0.4px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 /* ===== ADA IA — WIDGET FLUTUANTE ===== */
 
 /* Contentor posicionado no canto inferior direito */

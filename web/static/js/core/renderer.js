@@ -18,6 +18,7 @@ const Renderer = (() => {
   const NODE_W  = 54;
   const NODE_H  = 40;
   const H_GAP   = 28;
+  const V_GAP   = 14;
   const START_X = 60;
   const START_Y = 120;
 
@@ -52,16 +53,23 @@ const Renderer = (() => {
       pointerLabels: ['head'],
     },
     stack: {
-      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      calcPositions: (nds) => _calcStackPositions(nds),
+      drawBackdrop:  (snap, pos, nds) => _drawStackBackdrop(pos, nds),
+      drawArrows:    (snap, pos, nds) => _drawStackArrows(pos, nds),
       typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
       showIndex:     false,
       pointerLabels: ['top'],
+      appearClass:   'node-appear--stack',
+      disappearClass:'node-disappear--stack',
     },
     queue: {
+      drawBackdrop:  (snap, pos, nds) => _drawQueueBackdrop(pos, nds),
       drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
       typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
       showIndex:     false,
       pointerLabels: ['front', 'rear'],
+      appearClass:   'node-appear--queue',
+      disappearClass:'node-disappear--queue',
     },
   };
 
@@ -138,6 +146,14 @@ const Renderer = (() => {
     return nodes.map((_, i) => ({ x: ox + i * (NODE_W + H_GAP), y: START_Y }));
   }
 
+  function _calcStackPositions(nodes) {
+    const svgW   = svg.getBoundingClientRect().width || 600;
+    const totalH = nodes.length * NODE_H + Math.max(0, nodes.length - 1) * V_GAP;
+    const ox     = Math.max(START_X + 24, (svgW - NODE_W) / 2);
+    const oy     = Math.max(54, (300 - totalH) / 2);
+    return nodes.map((_, i) => ({ x: ox, y: oy + i * (NODE_H + V_GAP) }));
+  }
+
   // ── Node lifecycle ─────────────────────────────────────────────────────────
 
   /**
@@ -153,14 +169,17 @@ const Renderer = (() => {
    *   </g>
    */
   function _createNode(node, pos, index, type) {
+    const strategy = _getStrategy(type);
     const group = _el('g', {
       class: 'node-group',
       transform: `translate(${pos.x}, ${pos.y})`,
     });
+    group.dataset.type = type;
+    group.dataset.index = String(index);
 
-    const content = _el('g', { class: 'node-content node-appear' });
+    const content = _el('g', { class: `node-content ${strategy.appearClass || 'node-appear'}` });
     content.addEventListener('animationend', () => {
-      content.classList.remove('node-appear');
+      content.classList.remove(strategy.appearClass || 'node-appear');
     }, { once: true });
 
     const rect = _el('rect', {
@@ -180,7 +199,6 @@ const Renderer = (() => {
     let indexLabel  = null;
     let typeLabel   = null;
 
-    const strategy = _getStrategy(type);
     const tl = strategy.typeLabel(index);
     typeLabel = _el('text', { x: tl.x, y: tl.y, class: 'node-type-label' });
     typeLabel.textContent = tl.text;
@@ -210,6 +228,8 @@ const Renderer = (() => {
   function _updateNode(els, node, pos, index, type) {
     // Move to new position immediately
     els.group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+    els.group.dataset.type = type;
+    els.group.dataset.index = String(index);
 
     // Changing the class triggers the CSS fill transition
     els.rect.setAttribute('class', 'node-rect ' + _stateClass(node.state));
@@ -223,7 +243,9 @@ const Renderer = (() => {
 
   /** Plays the shrink-out animation, then removes the group from the DOM. */
   function _removeNode(els) {
-    els.content.classList.add('node-disappear');
+    const type = els.group.dataset.type || 'array';
+    const strategy = _getStrategy(type);
+    els.content.classList.add(strategy.disappearClass || 'node-disappear');
     els.content.addEventListener('animationend', () => {
       els.group.remove();
     }, { once: true });
@@ -240,6 +262,7 @@ const Renderer = (() => {
 
     if (!snapshot || !snapshot.nodes || snapshot.nodes.length === 0) {
       svg.style.minWidth = '';
+      svg.style.minHeight = '';
       for (const [, els] of _nodeMap) _removeNode(els);
       _nodeMap.clear();
       _arrowLayer.innerHTML = '';
@@ -250,14 +273,24 @@ const Renderer = (() => {
 
     const type  = snapshot.type || 'array';
     const nodes = snapshot.nodes;
+    const strategy = _getStrategy(type);
 
-    // Expand SVG width so long structures get a horizontal scroll instead of clipping.
-    // Must be set BEFORE _calcPositions() reads svg.getBoundingClientRect().width.
-    const contentW = nodes.length * NODE_W + Math.max(0, nodes.length - 1) * H_GAP;
-    const neededW  = contentW + START_X * 2 + (type !== 'array' ? H_GAP + 30 : 0);
-    svg.style.minWidth = neededW + 'px';
+    if (type === 'stack') {
+      const contentH = nodes.length * NODE_H + Math.max(0, nodes.length - 1) * V_GAP;
+      const neededH  = Math.max(240, contentH + 110);
+      const neededW  = Math.max(240, NODE_W + START_X * 2);
+      svg.style.minWidth = neededW + 'px';
+      svg.style.minHeight = neededH + 'px';
+    } else {
+      // Expand SVG width so long structures get a horizontal scroll instead of clipping.
+      // Must be set BEFORE _calcPositions() reads svg.getBoundingClientRect().width.
+      const contentW = nodes.length * NODE_W + Math.max(0, nodes.length - 1) * H_GAP;
+      const neededW  = contentW + START_X * 2 + (type !== 'array' ? H_GAP + 30 : 0);
+      svg.style.minWidth = neededW + 'px';
+      svg.style.minHeight = '';
+    }
 
-    const positions = _calcPositions(nodes);
+    const positions = strategy.calcPositions ? strategy.calcPositions(nodes) : _calcPositions(nodes);
 
     // ① Remove nodes that no longer exist
     const newIds = new Set(nodes.map(n => n.id));
@@ -282,7 +315,7 @@ const Renderer = (() => {
     _arrowLayer.innerHTML = '';
     _labelLayer.innerHTML = '';
 
-    const strategy = _getStrategy(type);
+    if (strategy.drawBackdrop) strategy.drawBackdrop(snapshot, positions, nodes);
     if (strategy.drawArrows) strategy.drawArrows(snapshot, positions, nodes);
     _drawPointerLabels(positions, nodes, strategy);
   }
@@ -332,6 +365,80 @@ const Renderer = (() => {
         _arrowLayer.appendChild(nullLabel);
       }
     });
+  }
+
+  function _drawStackArrows(positions, nodes) {
+    nodes.forEach((_, i) => {
+      const { x, y } = positions[i];
+
+      if (i < nodes.length - 1) {
+        const ny = positions[i + 1].y;
+        _drawArrow(x + NODE_W / 2, y + NODE_H + 2, x + NODE_W / 2, ny - 2);
+      } else {
+        _drawArrow(
+          x + NODE_W / 2, y + NODE_H + 2,
+          x + NODE_W / 2, y + NODE_H + V_GAP + 8,
+          { null: true },
+        );
+        const nullLabel = _el('text', {
+          x: x + NODE_W / 2,
+          y: y + NODE_H + V_GAP + 18,
+          class: 'pointer-label',
+          'dominant-baseline': 'middle',
+          fill: '#8baac8',
+        });
+        nullLabel.textContent = 'null';
+        _arrowLayer.appendChild(nullLabel);
+      }
+    });
+  }
+
+  function _drawStackBackdrop(positions, nodes) {
+    if (nodes.length === 0) return;
+    const left = positions[0].x - 18;
+    const right = positions[0].x + NODE_W + 18;
+    const top = positions[0].y - 14;
+    const bottom = positions[nodes.length - 1].y + NODE_H + 14;
+
+    const leftRail = _el('line', {
+      x1: left, y1: top, x2: left, y2: bottom,
+      class: 'structure-guide structure-guide--stack',
+    });
+    const rightRail = _el('line', {
+      x1: right, y1: top, x2: right, y2: bottom,
+      class: 'structure-guide structure-guide--stack',
+    });
+    const base = _el('line', {
+      x1: left - 2, y1: bottom, x2: right + 2, y2: bottom,
+      class: 'structure-guide structure-guide--stack',
+    });
+
+    _arrowLayer.appendChild(leftRail);
+    _arrowLayer.appendChild(rightRail);
+    _arrowLayer.appendChild(base);
+  }
+
+  function _drawQueueBackdrop(positions, nodes) {
+    if (nodes.length === 0) return;
+    const left = positions[0].x - 20;
+    const right = positions[nodes.length - 1].x + NODE_W + 20;
+    const y = positions[0].y + NODE_H + 22;
+
+    const rail = _el('line', {
+      x1: left, y1: y, x2: right, y2: y,
+      class: 'structure-guide structure-guide--queue',
+      'marker-end': 'url(#arrowhead)',
+    });
+    const label = _el('text', {
+      x: (left + right) / 2,
+      y: y + 18,
+      class: 'structure-guide-label',
+      'text-anchor': 'middle',
+    });
+    label.textContent = 'fluxo FIFO';
+
+    _arrowLayer.appendChild(rail);
+    _arrowLayer.appendChild(label);
   }
 
   /** Draws arrows for a circular singly-linked list.

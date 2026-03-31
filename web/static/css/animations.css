@@ -35,6 +35,36 @@
   animation: nodeAppear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+@keyframes nodeAppearStack {
+  from {
+    opacity: 0;
+    transform: translateY(-26px) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.node-appear--stack {
+  animation: nodeAppearStack 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes nodeAppearQueue {
+  from {
+    opacity: 0;
+    transform: translateX(28px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.node-appear--queue {
+  animation: nodeAppearQueue 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* Node disappearing (remove animation) */
 @keyframes nodeDisappear {
   from {
@@ -49,6 +79,36 @@
 
 .node-disappear {
   animation: nodeDisappear 0.3s ease-in forwards;
+}
+
+@keyframes nodeDisappearStack {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.86);
+  }
+}
+
+.node-disappear--stack {
+  animation: nodeDisappearStack 0.24s ease-in forwards;
+}
+
+@keyframes nodeDisappearQueue {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-26px) scale(0.9);
+  }
+}
+
+.node-disappear--queue {
+  animation: nodeDisappearQueue 0.24s ease-in forwards;
 }
 
 /* Node shifting (array shift animation) */
