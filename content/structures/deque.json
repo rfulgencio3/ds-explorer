@@ -1,0 +1,40 @@
+{
+  "id": "deque",
+  "name": "Deque",
+  "category": "Linear Restrita",
+  "description": "Deque (double-ended queue) e uma fila de dupla extremidade: permite inserir e remover tanto na frente quanto no fim em O(1). Nesta visualizacao ele e modelado como uma lista duplamente encadeada, com ponteiros front e rear para destacar as duas pontas acessiveis.",
+  "complexity": {
+    "access":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "search":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin":  { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "insertEnd":    { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "delete":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "space":        "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Janelas deslizantes e monotonic queue",
+      "Algoritmos que alternam consumo pela frente e pelo fim",
+      "Implementar pilha e fila com a mesma estrutura",
+      "Caches e historicos em que as duas pontas importam"
+    ],
+    "notRecommended": [
+      "Acesso por indice frequente",
+      "Estruturas estritamente FIFO ou LIFO, quando a API pode ser menor",
+      "Memoria muito limitada por causa de dois ponteiros por no",
+      "Cenarios em que um array contiguo traz vantagem clara de cache"
+    ],
+    "realWorldExamples": [
+      "Sliding window maximum/minimum",
+      "Undo/redo com empurro e remocao nas duas pontas",
+      "Agendadores que promovem ou degradam itens nas extremidades",
+      "Implementacoes de BFS 0-1 e algoritmos similares"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "var deque = new LinkedList<int>();\n\ndeque.AddFirst(20);   // push front\ndeque.AddLast(30);    // push back\n\nint front = deque.First!.Value;\nint rear  = deque.Last!.Value;\n\ndeque.RemoveFirst();  // pop front\ndeque.RemoveLast();   // pop back",
+    "go": "type node struct {\n\tValue int\n\tNext  *node\n\tPrev  *node\n}\n\ntype Deque struct {\n\tFront *node\n\tRear  *node\n}\n\nfunc (d *Deque) PushFront(value int) {\n\tn := &node{Value: value, Next: d.Front}\n\tif d.Front != nil {\n\t\td.Front.Prev = n\n\t} else {\n\t\td.Rear = n\n\t}\n\td.Front = n\n}\n\nfunc (d *Deque) PushBack(value int) {\n\tn := &node{Value: value, Prev: d.Rear}\n\tif d.Rear != nil {\n\t\td.Rear.Next = n\n\t} else {\n\t\td.Front = n\n\t}\n\td.Rear = n\n}",
+    "python": "from collections import deque\n\nfila = deque()\nfila.appendleft(10)  # push front\nfila.append(20)      # push back\n\nfront = fila[0]\nrear = fila[-1]\n\nfila.popleft()       # pop front\nfila.pop()           # pop back",
+    "javascript": "class Deque {\n  constructor() {\n    this.data = [];\n  }\n\n  pushFront(value) { this.data.unshift(value); }\n  pushBack(value)  { this.data.push(value); }\n  popFront()       { return this.data.shift(); }\n  popBack()        { return this.data.pop(); }\n  peekFront()      { return this.data[0]; }\n  peekBack()       { return this.data[this.data.length - 1]; }\n}"
+  }
+}

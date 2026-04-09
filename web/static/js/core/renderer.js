@@ -8,7 +8,7 @@
  *
  * Snapshot format expected by draw():
  * {
- *   type: 'array' | 'singly' | 'doubly' | 'circular' | 'stack' | 'queue',
+ *   type: 'array' | 'singly' | 'doubly' | 'circular' | 'stack' | 'queue' | 'circular-queue' | 'deque',
  *   nodes: [{ id, value, state }],   // state: 'neutral'|'visiting'|'success'|'danger'|'warning'
  *   pointers: { HEAD: <nodeId>, TAIL: <nodeId> }
  * }
@@ -68,6 +68,28 @@ const Renderer = (() => {
       typeLabel:     ()      => ({ text: 'node*', x: 4, y: 9 }),
       showIndex:     false,
       pointerLabels: ['front', 'rear'],
+      appearClass:   'node-appear--queue',
+      disappearClass:'node-disappear--queue',
+    },
+    'circular-queue': {
+      drawBackdrop:  (snap, pos, nds) => _drawCircularQueueBackdrop(pos, nds),
+      drawArrows:    null,
+      typeLabel:     ()      => ({ text: 'slot', x: NODE_W / 2, y: -22 }),
+      showIndex:     true,
+      pointerResolver: (snapshot) => ([
+        snapshot.pointers?.front ? { name: 'front', targetId: snapshot.pointers.front } : null,
+        snapshot.pointers?.rear ? { name: 'rear', targetId: snapshot.pointers.rear } : null,
+      ].filter(Boolean)),
+    },
+    deque: {
+      drawBackdrop:  (snap, pos, nds) => _drawQueueBackdrop(pos, nds, 'dupla extremidade'),
+      drawArrows:    (snap, pos, nds) => _drawLinkedListArrows(snap, pos, nds),
+      typeLabel:     ()      => ({ text: 'dbl*', x: 4, y: 9 }),
+      showIndex:     false,
+      pointerResolver: (snapshot) => ([
+        snapshot.pointers?.front ? { name: 'front', targetId: snapshot.pointers.front } : null,
+        snapshot.pointers?.rear ? { name: 'rear', targetId: snapshot.pointers.rear } : null,
+      ].filter(Boolean)),
       appearClass:   'node-appear--queue',
       disappearClass:'node-disappear--queue',
     },
@@ -317,7 +339,7 @@ const Renderer = (() => {
 
     if (strategy.drawBackdrop) strategy.drawBackdrop(snapshot, positions, nodes);
     if (strategy.drawArrows) strategy.drawArrows(snapshot, positions, nodes);
-    _drawPointerLabels(positions, nodes, strategy);
+    _drawPointerLabels(snapshot, positions, nodes, strategy);
   }
 
   // ── Arrow drawing ──────────────────────────────────────────────────────────
@@ -334,7 +356,7 @@ const Renderer = (() => {
   }
 
   function _drawLinkedListArrows(snapshot, positions, nodes) {
-    const isDbl = snapshot.type === 'doubly';
+    const isDbl = snapshot.type === 'doubly' || snapshot.type === 'deque';
 
     nodes.forEach((_, i) => {
       const { x, y } = positions[i];
@@ -418,7 +440,7 @@ const Renderer = (() => {
     _arrowLayer.appendChild(base);
   }
 
-  function _drawQueueBackdrop(positions, nodes) {
+  function _drawQueueBackdrop(positions, nodes, labelText = 'fluxo FIFO') {
     if (nodes.length === 0) return;
     const left = positions[0].x - 20;
     const right = positions[nodes.length - 1].x + NODE_W + 20;
@@ -435,9 +457,47 @@ const Renderer = (() => {
       class: 'structure-guide-label',
       'text-anchor': 'middle',
     });
-    label.textContent = 'fluxo FIFO';
+    label.textContent = labelText;
 
     _arrowLayer.appendChild(rail);
+    _arrowLayer.appendChild(label);
+  }
+
+  function _drawCircularQueueBackdrop(positions, nodes) {
+    if (nodes.length === 0) return;
+    const first = positions[0];
+    const last = positions[nodes.length - 1];
+    const left = first.x - 16;
+    const right = last.x + NODE_W + 16;
+    const top = first.y - 22;
+    const bottom = first.y + NODE_H + 30;
+
+    const d = [
+      `M ${left} ${first.y + NODE_H / 2}`,
+      `Q ${left} ${top} ${first.x + NODE_W / 2} ${top}`,
+      `L ${last.x + NODE_W / 2} ${top}`,
+      `Q ${right} ${top} ${right} ${first.y + NODE_H / 2}`,
+      `L ${right} ${bottom}`,
+      `Q ${right} ${bottom + 18} ${last.x + NODE_W / 2} ${bottom + 18}`,
+      `L ${first.x + NODE_W / 2} ${bottom + 18}`,
+      `Q ${left} ${bottom + 18} ${left} ${bottom}`,
+      `L ${left} ${first.y + NODE_H / 2}`,
+    ].join(' ');
+
+    const frame = _el('path', {
+      d,
+      class: 'structure-guide structure-guide--queue',
+      'marker-end': 'url(#arrowhead-circular)',
+    });
+    const label = _el('text', {
+      x: (left + right) / 2,
+      y: bottom + 36,
+      class: 'structure-guide-label',
+      'text-anchor': 'middle',
+    });
+    label.textContent = 'buffer circular';
+
+    _arrowLayer.appendChild(frame);
     _arrowLayer.appendChild(label);
   }
 
@@ -500,25 +560,30 @@ const Renderer = (() => {
     _arrowLayer.appendChild(nextLabel);
   }
 
-  function _drawPointerLabels(positions, nodes, strategy) {
-    if (nodes.length === 0 || strategy.pointerLabels.length === 0) return;
+  function _drawPointerLabels(snapshot, positions, nodes, strategy) {
+    const targets = _resolvePointerTargets(snapshot, nodes, strategy);
+    if (nodes.length === 0 || targets.length === 0) return;
 
     // Lowercase style — matches coding convention (variable names, not constants)
-    if (strategy.pointerLabels.includes('head')) {
-      _drawPointerLabel('head', positions[0].x, positions[0].y);
+    targets.forEach(({ name, targetId }) => {
+      const idx = nodes.findIndex(node => node.id === targetId);
+      if (idx >= 0) _drawPointerLabel(name, positions[idx].x, positions[idx].y);
+    });
+  }
+
+  function _resolvePointerTargets(snapshot, nodes, strategy) {
+    if (strategy.pointerResolver) {
+      return strategy.pointerResolver(snapshot, nodes);
     }
-    if (strategy.pointerLabels.includes('tail')) {
-      _drawPointerLabel('tail', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
-    }
-    if (strategy.pointerLabels.includes('top')) {
-      _drawPointerLabel('top', positions[0].x, positions[0].y);
-    }
-    if (strategy.pointerLabels.includes('front')) {
-      _drawPointerLabel('front', positions[0].x, positions[0].y);
-    }
-    if (strategy.pointerLabels.includes('rear')) {
-      _drawPointerLabel('rear', positions[nodes.length - 1].x, positions[nodes.length - 1].y);
-    }
+
+    const labels = strategy.pointerLabels || [];
+    const targets = [];
+    if (labels.includes('head') && nodes[0]) targets.push({ name: 'head', targetId: nodes[0].id });
+    if (labels.includes('tail') && nodes[nodes.length - 1]) targets.push({ name: 'tail', targetId: nodes[nodes.length - 1].id });
+    if (labels.includes('top') && nodes[0]) targets.push({ name: 'top', targetId: nodes[0].id });
+    if (labels.includes('front') && nodes[0]) targets.push({ name: 'front', targetId: nodes[0].id });
+    if (labels.includes('rear') && nodes[nodes.length - 1]) targets.push({ name: 'rear', targetId: nodes[nodes.length - 1].id });
+    return targets;
   }
 
   function _drawPointerLabel(name, nodeX, nodeY) {

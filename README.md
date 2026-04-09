@@ -90,13 +90,13 @@ Obtenha uma chave gratuita em [aistudio.google.com](https://aistudio.google.com/
 | Lista Circular | `circular-list` | Linear | Encadeada | Disponível |
 | Pilha (Stack) | `stack` | Linear | Restrita | Disponível |
 | Fila (Queue) | `queue` | Linear | Restrita | Disponível |
+| Fila Circular | `circular-queue` | Linear | Restrita | Disponível |
+| Deque | `deque` | Linear | Restrita | Disponível |
 
 ## Estruturas planejadas
 
 | Estrutura | Categoria | Subtipo | Status |
 |---|---|---|---|
-| Fila Circular | Linear | Restrita | Em breve |
-| Deque | Linear | Restrita | Em breve |
 | Árvore Binária de Busca | Árvore | - | Em breve |
 | Árvore AVL | Árvore | - | Em breve |
 | Heap | Árvore | - | Em breve |

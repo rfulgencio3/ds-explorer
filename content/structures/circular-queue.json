@@ -1,0 +1,39 @@
+{
+  "id": "circular-queue",
+  "name": "Fila Circular",
+  "category": "Linear Restrita",
+  "description": "Fila FIFO implementada sobre um buffer circular contíguo. O ponteiro front indica o próximo elemento a sair e o rear marca o elemento mais recente inserido. Quando o fim físico do array é alcançado, a próxima posição volta ao início, reaproveitando slots liberados sem deslocar elementos.",
+  "complexity": {
+    "access":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "search":       { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertEnd":    { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "delete":       { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "space":        "O(capacidade)"
+  },
+  "useCases": {
+    "recommended": [
+      "Buffers de audio, video e rede com capacidade fixa",
+      "Filas de eventos em sistemas embarcados ou tempo real",
+      "Produtor-consumidor quando o limite maximo e conhecido",
+      "Cenarios em que deslocar elementos seria desperdicio"
+    ],
+    "notRecommended": [
+      "Tamanho cresce sem limite ou e desconhecido",
+      "Acesso aleatorio por indice logico arbitrario",
+      "Insercoes e remocoes em posicoes intermediarias",
+      "Quando a implementacao precisa ser a mais simples possivel"
+    ],
+    "realWorldExamples": [
+      "Ring buffer de placa de som",
+      "Fila de pacotes de rede em drivers",
+      "UART e serial buffers em microcontroladores",
+      "Filas de logs ou telemetria com janela fixa"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "public sealed class CircularQueue {\n    private readonly int[] _data;\n    private int _head;\n    private int _tail;\n    private int _count;\n\n    public CircularQueue(int capacity) {\n        _data = new int[capacity];\n    }\n\n    public void Enqueue(int value) {\n        if (_count == _data.Length) throw new InvalidOperationException(\"fila cheia\");\n        _data[_tail] = value;\n        _tail = (_tail + 1) % _data.Length;\n        _count++;\n    }\n\n    public int Dequeue() {\n        if (_count == 0) throw new InvalidOperationException(\"fila vazia\");\n        int value = _data[_head];\n        _head = (_head + 1) % _data.Length;\n        _count--;\n        return value;\n    }\n}",
+    "go": "type CircularQueue struct {\n\tdata []int\n\thead int\n\ttail int // proxima posicao de escrita\n\tsize int\n}\n\nfunc (q *CircularQueue) Enqueue(value int) error {\n\tif q.size == len(q.data) {\n\t\treturn errors.New(\"fila cheia\")\n\t}\n\tq.data[q.tail] = value\n\tq.tail = (q.tail + 1) % len(q.data)\n\tq.size++\n\treturn nil\n}\n\nfunc (q *CircularQueue) Dequeue() (int, error) {\n\tif q.size == 0 {\n\t\treturn 0, errors.New(\"fila vazia\")\n\t}\n\tvalue := q.data[q.head]\n\tq.head = (q.head + 1) % len(q.data)\n\tq.size--\n\treturn value, nil\n}",
+    "python": "class CircularQueue:\n    def __init__(self, capacity):\n        self.data = [None] * capacity\n        self.head = 0\n        self.tail = 0\n        self.size = 0\n\n    def enqueue(self, value):\n        if self.size == len(self.data):\n            raise ValueError(\"fila cheia\")\n        self.data[self.tail] = value\n        self.tail = (self.tail + 1) % len(self.data)\n        self.size += 1\n\n    def dequeue(self):\n        if self.size == 0:\n            raise ValueError(\"fila vazia\")\n        value = self.data[self.head]\n        self.head = (self.head + 1) % len(self.data)\n        self.size -= 1\n        return value",
+    "javascript": "class CircularQueue {\n  constructor(capacity) {\n    this.data = Array(capacity).fill(null);\n    this.head = 0;\n    this.tail = 0; // proxima escrita\n    this.size = 0;\n  }\n\n  enqueue(value) {\n    if (this.size === this.data.length) throw new Error('fila cheia');\n    this.data[this.tail] = value;\n    this.tail = (this.tail + 1) % this.data.length;\n    this.size++;\n  }\n\n  dequeue() {\n    if (this.size === 0) throw new Error('fila vazia');\n    const value = this.data[this.head];\n    this.head = (this.head + 1) % this.data.length;\n    this.size--;\n    return value;\n  }\n}"
+  }
+}

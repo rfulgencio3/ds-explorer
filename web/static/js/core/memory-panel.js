@@ -70,6 +70,24 @@ const MemoryPanel = (() => {
       fragmented: true,
       ptrOverhead: '75%  (ptr 12B / 16B)',
     },
+    'circular-queue': {
+      bytesPerElem: 4,
+      allocType:   'Dinamica contigua - buffer circular',
+      elemLabel:   'Por slot',
+      cacheLineElems: 16,
+      baseAddr: 0x6000,
+      fragmented: false,
+      ptrOverhead: null,
+    },
+    deque: {
+      bytesPerElem: 24,
+      allocType:   'Dinamica (heap) - deque duplamente encadeado',
+      elemLabel:   'Por no',
+      cacheLineElems: 2,
+      baseAddr: 0x7000,
+      fragmented: true,
+      ptrOverhead: '83%  (ptr 20B / 24B)',
+    },
     doubly: {
       bytesPerElem: 24,         // value(4) + next(8) + prev(8) + padding(4) = 24B
       allocType:   'Dinâmica (heap)',
