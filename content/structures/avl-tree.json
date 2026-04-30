@@ -1,0 +1,25 @@
+{
+  "id": "avl-tree",
+  "name": "Arvore AVL",
+  "category": "Arvore",
+  "description": "AVL e uma BST auto-balanceada. Depois de insercoes e remocoes, ela recalcula alturas e aplica rotacoes para manter o fator de balanceamento entre -1 e 1.",
+  "complexity": {
+    "access": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
+    "search": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
+    "insertBegin": { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "insertEnd": { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "delete": { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "space": "O(n)"
+  },
+  "useCases": {
+    "recommended": ["Busca ordenada com garantia O(log n)", "Cargas com muitas consultas", "Quando pior caso previsivel importa"],
+    "notRecommended": ["Quando simplicidade e mais importante que garantia", "Quando insercoes precisam ser o mais baratas possivel", "Quando hash table resolve melhor por chave exata"],
+    "realWorldExamples": ["Indices em memoria", "Dicionarios ordenados", "Base para estudar rotacoes"]
+  },
+  "codeSnippets": {
+    "csharp": "class AvlNode { public int Value, Height; public AvlNode? Left, Right; }\n// Apos inserir, atualize altura e rotacione se |balance| > 1.",
+    "go": "type Node struct { Value, Height int; Left, Right *Node }\n// balance = height(left) - height(right)",
+    "python": "def balance(node):\n    return height(node.left) - height(node.right)",
+    "javascript": "function balance(node) {\n  return height(node.left) - height(node.right);\n}"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "hash-table",
+  "name": "Tabela Hash",
+  "category": "Hash",
+  "description": "Tabela hash usa uma funcao para transformar uma chave em indice de bucket. Nesta simulacao, colisoes sao tratadas por linear probing, avancando para o proximo bucket livre.",
+  "complexity": {
+    "access": { "best": "O(1)", "average": "O(1)", "worst": "O(n)" },
+    "search": { "best": "O(1)", "average": "O(1)", "worst": "O(n)" },
+    "insertBegin": { "best": "O(1)", "average": "O(1)", "worst": "O(n)" },
+    "insertEnd": { "best": "O(1)", "average": "O(1)", "worst": "O(n)" },
+    "delete": { "best": "O(1)", "average": "O(1)", "worst": "O(n)" },
+    "space": "O(n)"
+  },
+  "useCases": {
+    "recommended": ["Busca rapida por chave", "Caches e dicionarios", "Contagem de frequencia"],
+    "notRecommended": ["Quando ordem dos elementos importa", "Quando a funcao hash gera muitas colisoes", "Quando memoria extra para buckets e problema"],
+    "realWorldExamples": ["Dictionary<TKey,TValue>", "Map em JavaScript", "Indice por ID em sistemas"]
+  },
+  "codeSnippets": {
+    "csharp": "var map = new Dictionary<string, int>();\nmap[\"ana\"] = 10;\nvar score = map[\"ana\"];",
+    "go": "m := map[string]int{}\nm[\"ana\"] = 10\nscore := m[\"ana\"]",
+    "python": "m = {}\nm['ana'] = 10\nscore = m['ana']",
+    "javascript": "const m = new Map();\nm.set('ana', 10);\nconst score = m.get('ana');"
+  }
+}

@@ -88,6 +88,33 @@ const MemoryPanel = (() => {
       fragmented: true,
       ptrOverhead: '83%  (ptr 20B / 24B)',
     },
+    heap: {
+      bytesPerElem: 4,
+      allocType:   'Dinamica contigua - heap binario',
+      elemLabel:   'Por slot',
+      cacheLineElems: 16,
+      baseAddr: 0x8000,
+      fragmented: false,
+      ptrOverhead: null,
+    },
+    'hash-table': {
+      bytesPerElem: 8,
+      allocType:   'Dinamica contigua - buckets',
+      elemLabel:   'Por bucket',
+      cacheLineElems: 8,
+      baseAddr: 0x9000,
+      fragmented: false,
+      ptrOverhead: null,
+    },
+    tree: {
+      bytesPerElem: 24,
+      allocType:   'Dinamica (heap) - arvore',
+      elemLabel:   'Por no',
+      cacheLineElems: 2,
+      baseAddr: 0xA000,
+      fragmented: true,
+      ptrOverhead: '83%  (ptr 20B / 24B)',
+    },
     doubly: {
       bytesPerElem: 24,         // value(4) + next(8) + prev(8) + padding(4) = 24B
       allocType:   'Dinâmica (heap)',

@@ -1,0 +1,25 @@
+{
+  "id": "heap",
+  "name": "Heap (Min Heap)",
+  "category": "Arvore",
+  "description": "Heap binario e uma arvore quase completa armazenada em array. Em um Min Heap, o menor valor fica sempre na raiz, o que torna peek minimo O(1) e insercao/remocao O(log n).",
+  "complexity": {
+    "access": { "best": "O(1)", "average": "O(1)", "worst": "O(1)" },
+    "search": { "best": "O(1)", "average": "O(n)", "worst": "O(n)" },
+    "insertBegin": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
+    "insertEnd": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
+    "delete": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
+    "space": "O(n)"
+  },
+  "useCases": {
+    "recommended": ["Fila de prioridade", "Escalonamento por menor custo ou maior prioridade", "Selecionar repetidamente o minimo ou maximo"],
+    "notRecommended": ["Busca arbitraria frequente", "Percorrer valores em ordem totalmente ordenada", "Manter relacoes complexas entre elementos"],
+    "realWorldExamples": ["PriorityQueue<T>", "Algoritmo de Dijkstra", "Heap sort"]
+  },
+  "codeSnippets": {
+    "csharp": "var pq = new PriorityQueue<string, int>();\npq.Enqueue(\"job\", 3);\nvar next = pq.Dequeue();",
+    "go": "type MinHeap []int\n// Insert adiciona no fim e sobe enquanto for menor que o pai.",
+    "python": "import heapq\nh = []\nheapq.heappush(h, 10)\nmenor = heapq.heappop(h)",
+    "javascript": "class MinHeap {\n  constructor() { this.data = []; }\n  parent(i) { return Math.floor((i - 1) / 2); }\n}"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "binary-search-tree",
+  "name": "Arvore Binaria de Busca",
+  "category": "Arvore",
+  "description": "BST organiza valores de modo que menores ficam na subarvore esquerda e maiores na direita. A eficiencia depende da altura: uma arvore equilibrada busca em O(log n), mas uma arvore degenerada cai para O(n).",
+  "complexity": {
+    "access": { "best": "O(1)", "average": "O(log n)", "worst": "O(n)" },
+    "search": { "best": "O(1)", "average": "O(log n)", "worst": "O(n)" },
+    "insertBegin": { "best": "O(1)", "average": "O(log n)", "worst": "O(n)" },
+    "insertEnd": { "best": "O(1)", "average": "O(log n)", "worst": "O(n)" },
+    "delete": { "best": "O(1)", "average": "O(log n)", "worst": "O(n)" },
+    "space": "O(n)"
+  },
+  "useCases": {
+    "recommended": ["Manter dados pesquisaveis por comparacao", "Percurso em ordem crescente", "Base conceitual para arvores balanceadas"],
+    "notRecommended": ["Entrada quase ordenada sem balanceamento", "Lookup medio O(1) por chave", "Grafos ou relacoes muitos-para-muitos"],
+    "realWorldExamples": ["Indice ordenado didatico", "Symbol table simples", "Percurso in-order"]
+  },
+  "codeSnippets": {
+    "csharp": "class Node { public int Value; public Node? Left, Right; }\n// Inserir compara e desce para esquerda ou direita.",
+    "go": "type Node struct { Value int; Left, Right *Node }\n// Menores vao para Left; maiores para Right.",
+    "python": "class Node:\n    def __init__(self, v):\n        self.value = v\n        self.left = self.right = None",
+    "javascript": "class Node {\n  constructor(value) { this.value = value; this.left = null; this.right = null; }\n}"
+  }
+}

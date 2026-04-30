@@ -8,7 +8,7 @@
  *
  * Snapshot format expected by draw():
  * {
- *   type: 'array' | 'singly' | 'doubly' | 'circular' | 'stack' | 'queue' | 'circular-queue' | 'deque',
+ *   type: 'array' | 'singly' | 'doubly' | 'circular' | 'stack' | 'queue' | 'circular-queue' | 'deque' | 'tree',
  *   nodes: [{ id, value, state }],   // state: 'neutral'|'visiting'|'success'|'danger'|'warning'
  *   pointers: { HEAD: <nodeId>, TAIL: <nodeId> }
  * }
@@ -93,6 +93,15 @@ const Renderer = (() => {
       appearClass:   'node-appear--queue',
       disappearClass:'node-disappear--queue',
     },
+    tree: {
+      calcPositions: (nds) => _calcTreePositions(nds),
+      drawArrows:    (snap, pos, nds) => _drawTreeArrows(pos, nds),
+      typeLabel:     (i, node) => ({ text: node.meta || 'node*', x: NODE_W / 2, y: -22 }),
+      showIndex:     false,
+      pointerResolver: (snapshot, nodes) => ([
+        nodes[0] ? { name: snapshot.rootLabel || 'root', targetId: nodes[0].id } : null,
+      ].filter(Boolean)),
+    },
   };
 
   function _getStrategy(type) {
@@ -176,6 +185,26 @@ const Renderer = (() => {
     return nodes.map((_, i) => ({ x: ox, y: oy + i * (NODE_H + V_GAP) }));
   }
 
+  function _calcTreePositions(nodes) {
+    const svgW = svg.getBoundingClientRect().width || 760;
+    const byOrder = nodes
+      .map((node, i) => ({ node, i }))
+      .sort((a, b) => (a.node.order ?? a.i) - (b.node.order ?? b.i));
+    const orderById = new Map();
+    byOrder.forEach((item, order) => orderById.set(item.node.id, order));
+
+    const totalW = Math.max(1, nodes.length) * (NODE_W + H_GAP);
+    const ox = Math.max(START_X, (svgW - totalW) / 2);
+
+    return nodes.map((node, i) => {
+      const order = orderById.get(node.id) ?? i;
+      return {
+        x: ox + order * (NODE_W + H_GAP),
+        y: 62 + (node.depth || 0) * (NODE_H + 48),
+      };
+    });
+  }
+
   // ── Node lifecycle ─────────────────────────────────────────────────────────
 
   /**
@@ -221,7 +250,7 @@ const Renderer = (() => {
     let indexLabel  = null;
     let typeLabel   = null;
 
-    const tl = strategy.typeLabel(index);
+    const tl = strategy.typeLabel(index, node);
     typeLabel = _el('text', { x: tl.x, y: tl.y, class: 'node-type-label' });
     typeLabel.textContent = tl.text;
     content.appendChild(typeLabel);
@@ -297,7 +326,13 @@ const Renderer = (() => {
     const nodes = snapshot.nodes;
     const strategy = _getStrategy(type);
 
-    if (type === 'stack') {
+    if (type === 'tree') {
+      const maxDepth = Math.max(...nodes.map(n => n.depth || 0), 0);
+      const contentW = nodes.length * (NODE_W + H_GAP) + START_X * 2;
+      const contentH = (maxDepth + 1) * (NODE_H + 48) + 90;
+      svg.style.minWidth = Math.max(640, contentW) + 'px';
+      svg.style.minHeight = Math.max(320, contentH) + 'px';
+    } else if (type === 'stack') {
       const contentH = nodes.length * NODE_H + Math.max(0, nodes.length - 1) * V_GAP;
       const neededH  = Math.max(240, contentH + 110);
       const neededW  = Math.max(240, NODE_W + START_X * 2);
@@ -499,6 +534,24 @@ const Renderer = (() => {
 
     _arrowLayer.appendChild(frame);
     _arrowLayer.appendChild(label);
+  }
+
+  function _drawTreeArrows(positions, nodes) {
+    const posById = new Map(nodes.map((node, i) => [node.id, positions[i]]));
+
+    nodes.forEach((node, i) => {
+      if (node.parent == null) return;
+      const parent = posById.get(node.parent);
+      const child = positions[i];
+      if (!parent || !child) return;
+
+      _drawArrow(
+        parent.x + NODE_W / 2,
+        parent.y + NODE_H + 2,
+        child.x + NODE_W / 2,
+        child.y - 4,
+      );
+    });
   }
 
   /** Draws arrows for a circular singly-linked list.
