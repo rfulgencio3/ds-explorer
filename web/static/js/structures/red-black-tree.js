@@ -548,13 +548,14 @@ function initStructurePage() {
       walk(node.left, depth + 1, node.id);
       const isHl = highlighted.includes(node.id);
       nodes.push({
-        id:     node.id,
-        value:  node.value,
-        state:  isHl ? hlState : (node.color === 'RED' ? 'danger' : 'neutral'),
-        parent: parentId,
+        id:      node.id,
+        value:   node.value,
+        state:   isHl ? hlState : 'neutral',
+        rbColor: node.color,
+        parent:  parentId,
         depth,
-        order:  order++,
-        meta:   node.color === 'RED' ? 'R' : 'B',
+        order:   order++,
+        meta:    node.color === 'RED' ? 'R' : 'B',
       });
       walk(node.right, depth + 1, node.id);
     }

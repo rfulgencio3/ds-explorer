@@ -229,6 +229,7 @@ const Renderer = (() => {
     });
     group.dataset.type = type;
     group.dataset.index = String(index);
+    if (node.rbColor) group.dataset.rb = node.rbColor;
 
     const content = _el('g', { class: `node-content ${strategy.appearClass || 'node-appear'}` });
     content.addEventListener('animationend', () => {
@@ -284,6 +285,7 @@ const Renderer = (() => {
     els.group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
     els.group.dataset.type = type;
     els.group.dataset.index = String(index);
+    els.group.dataset.rb = node.rbColor || '';
 
     // Changing the class triggers the CSS fill transition
     els.rect.setAttribute('class', 'node-rect ' + _stateClass(node.state));

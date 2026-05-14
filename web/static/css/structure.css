@@ -945,3 +945,16 @@ details[open] > .info-block-title::after {
   .ada-float-panel { width: calc(100vw - 2rem); }
   #ada-widget { right: 1rem; bottom: 1.5rem; }
 }
+
+/* ===== RB TREE NODE COLORS ===== */
+/* Stroke always reflects RB node color; fill reflects animation state.
+   Compound selectors (specificity 0,2,0) beat state class rules (0,1,0). */
+.node-group[data-rb="RED"]   .node-rect { stroke: #dc5555; stroke-width: 2.5px; }
+.node-group[data-rb="BLACK"] .node-rect { stroke: #3a4f6e; stroke-width: 2.5px; }
+
+/* Idle fill: RED nodes get a dark crimson base; BLACK keep the neutral surface */
+.node-group[data-rb="RED"]   .node-rect.node-rect--neutral { fill: #2a1010; }
+
+/* Type label ('R' / 'B') colored to match the node */
+.node-group[data-rb="RED"]   .node-type-label { fill: #dc5555; }
+.node-group[data-rb="BLACK"] .node-type-label { fill: #6a7a9a; }
