@@ -15,48 +15,26 @@ function initStructurePage() {
 
   const MAX_CAPACITY = 16;
   const BYTES_PER_ELEM = 4;
-  const ELEMS_PER_LINE = 16;
-  const BASE_ADDR = 0x6000;
 
-  let _prevCacheLine = -1;
-
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
-
-  inputSize.max = '12';
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { inputSize, btnGenerate, btnExecute, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Fila Circular',
+    memoryType:   'circular-queue',
+    maxSize:      12,
+    fieldMap:     { enqueue: ['value'], dequeue: [], peek: [], search: ['value'] },
+    selectHtml: `
+      <optgroup label="Fila Circular">
+        <option value="enqueue">Enqueue (inserir no rear)</option>
+        <option value="dequeue">Dequeue (remover do front)</option>
+        <option value="peek">Peek (ver frente)</option>
+        <option value="search">Buscar por valor</option>
+      </optgroup>
+    `,
+  });
   inputSize.value = inputSize.value || '6';
 
-  selectOp.innerHTML = `
-    <optgroup label="Fila Circular">
-      <option value="enqueue">Enqueue (inserir no rear)</option>
-      <option value="dequeue">Dequeue (remover do front)</option>
-      <option value="peek">Peek (ver frente)</option>
-      <option value="search">Buscar por valor</option>
-    </optgroup>
-  `;
-
-  const fieldMap = {
-    enqueue: ['value'],
-    dequeue: [],
-    peek: [],
-    search: ['value'],
-  };
-
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Fila Circular');
-  MemoryPanel.init('circular-queue');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forArray({ type: 'circular-queue', bytesPerElem: 4, elemsPerLine: 16, baseAddr: 0x6000 });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(10, Math.max(2, parseInt(inputSize.value, 10) || 6));
@@ -69,7 +47,7 @@ function initStructurePage() {
       buffer[_physicalIdx(i, head, capacity)] = Math.floor(Math.random() * 90) + 1;
     }
 
-    _prevCacheLine = -1;
+    _mem.reset();
     Animator.load([{
       description: `Fila circular gerada com ${size} elementos em buffer de capacidade ${capacity}. front e rear podem dar wrap sem deslocar elementos.`,
       snapshot: _snapshot(buffer, count, head),
@@ -87,7 +65,7 @@ function initStructurePage() {
     const op = selectOp.value;
     const value = parseInt(inputValue.value, 10);
     let result = { steps: [] };
-    _prevCacheLine = -1;
+    _mem.reset();
 
     switch (op) {
       case 'enqueue':
@@ -135,46 +113,12 @@ function initStructurePage() {
     return `slot-${idx}`;
   }
 
-  function _addr(i) {
-    const hex = (BASE_ADDR + i * BYTES_PER_ELEM).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _cacheFor(idx) {
-    const line = Math.floor(idx / ELEMS_PER_LINE);
-    const hit = line === _prevCacheLine;
-    _prevCacheLine = line;
-    if (hit) {
-      return {
-        event: 'hit',
-        cycles: 4,
-        note: `Slot físico ${idx} ainda está na cache line ${line}.`,
-      };
-    }
-    return {
-      event: 'miss',
-      cycles: 200,
-      note: `Cache line ${line} ainda não estava carregada; acesso contíguo ao ring buffer.`,
-    };
-  }
-
   function _buildMemory(bufferState, accessedIdx, noteOverride = null) {
-    const cache = (accessedIdx != null && accessedIdx >= 0)
-      ? _cacheFor(accessedIdx)
-      : { event: null, cycles: null, note: null };
-
-    return {
-      type: 'circular-queue',
-      totalBytes: capacity * BYTES_PER_ELEM,
-      event: cache.event,
-      cycles: cache.cycles,
-      note: noteOverride || cache.note || `Buffer circular de ${capacity} slots.`,
-      accessedIdx: accessedIdx != null ? accessedIdx : null,
-      layout: bufferState.map((value, idx) => ({
-        value: value == null ? '·' : value,
-        addr: _addr(idx),
-      })),
-    };
+    const result = _mem.buildMemory(bufferState, accessedIdx, noteOverride);
+    result.totalBytes = capacity * BYTES_PER_ELEM;
+    result.note       = result.note || `Buffer circular de ${capacity} slots.`;
+    result.layout     = bufferState.map((value, i) => ({ value: value == null ? '·' : value, addr: _mem.addr(i) }));
+    return result;
   }
 
   function _snapshot(bufferState, countState, headState, highlightedIdxs = [], hlState = 'visiting') {

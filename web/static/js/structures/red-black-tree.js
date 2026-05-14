@@ -17,37 +17,29 @@ function initStructurePage() {
   let nextId = 0;
   const MAX_SIZE = 20;
   const BYTES_PER_NODE = 32; // value(4) + color(1+3pad) + left*(8) + right*(8) + parent*(8)
-  const BASE_ADDR = 0xC000;
-  let _prevAccessedId = -1;
 
-  const meta      = window.__STRUCTURE_DATA__;
-  const selectOp  = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute  = document.getElementById('btn-execute');
-  const fieldValue  = document.getElementById('field-value');
-  const fieldIndex  = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue  = document.getElementById('input-value');
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Arvore Rubro-Negra',
+    memoryType:   'tree',
+    maxSize:      15,
+    fieldMap:     { insert: ['value'], search: ['value'], remove: ['value'] },
+    selectHtml: `
+      <optgroup label="Rubro-Negra">
+        <option value="insert">Inserir</option>
+        <option value="search">Buscar</option>
+        <option value="remove">Remover</option>
+      </optgroup>
+    `,
+  });
 
-  inputSize.max = '15';
-  selectOp.innerHTML = `
-    <optgroup label="Rubro-Negra">
-      <option value="insert">Inserir</option>
-      <option value="search">Buscar</option>
-      <option value="remove">Remover</option>
-    </optgroup>
-  `;
-
-  const fieldMap = { insert: ['value'], search: ['value'], remove: ['value'] };
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Arvore Rubro-Negra');
-  MemoryPanel.init('tree');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _memHelper = MemoryHelpers.forLinked({
+    type: 'tree', bytesPerNode: BYTES_PER_NODE, baseAddr: 0xC000,
+    hashMult: 2246822519, rangeSize: 0x5000, alignMask: ~0xF,
+    idleNote: `Cada no: valor(4B) + cor(1+3B pad) + 3 ponteiros(24B) = ${BYTES_PER_NODE}B.`,
+    missNote: addr => `Acesso ao no em ${addr}.`,
+  });
 
   // ── Estrutura interna do no ─────────────────────────────────────────────
   // { id, value, color:'RED'|'BLACK', left, right, parent }
@@ -574,29 +566,7 @@ function initStructurePage() {
     return { type: 'tree', nodes, rootLabel: lbl };
   }
 
-  // ── Simulacao de memoria ────────────────────────────────────────────────
-
-  function _nodeAddr(id) {
-    const off = ((id * 2246822519) >>> 0) % 0x5000;
-    return '0x' + (BASE_ADDR + (off & ~0xF)).toString(16).toUpperCase().padStart(4, '0');
-  }
-
-  function _mem(accessedId) {
-    const nodes = _flatten();
-    const hit   = accessedId != null && accessedId === _prevAccessedId;
-    if (accessedId != null) _prevAccessedId = accessedId;
-    return {
-      type:        'tree',
-      totalBytes:  nodes.length * BYTES_PER_NODE,
-      event:       accessedId == null ? null : (hit ? 'hit' : 'miss'),
-      cycles:      accessedId == null ? null : (hit ? 4 : 200),
-      note:        accessedId == null
-        ? `Cada no: valor(4B) + cor(1+3B pad) + 3 ponteiros(24B) = ${BYTES_PER_NODE}B.`
-        : `Acesso ao no em ${_nodeAddr(accessedId)}.`,
-      accessedIdx: accessedId == null ? null : nodes.findIndex(n => n.id === accessedId),
-      layout:      nodes.map(n => ({ value: n.value, addr: _nodeAddr(n.id) })),
-    };
-  }
+  function _mem(accessedId) { return _memHelper.buildMemory(_flatten(), accessedId); }
 
   // ── Auxiliares ──────────────────────────────────────────────────────────
 
@@ -642,7 +612,7 @@ function initStructurePage() {
     const size = Math.min(15, Math.max(2, parseInt(inputSize.value, 10) || 8));
     root    = null;
     nextId  = 0;
-    _prevAccessedId = -1;
+    _memHelper.reset();
 
     const vals = [];
     while (vals.length < size) {
@@ -666,7 +636,7 @@ function initStructurePage() {
   btnExecute.addEventListener('click', () => {
     const value = parseInt(inputValue.value, 10);
     if (isNaN(value)) { alert('Informe um valor.'); return; }
-    _prevAccessedId = -1;
+    _memHelper.reset();
     let result = { steps: [], root };
     switch (selectOp.value) {
       case 'insert': result = _insertOp(value); break;

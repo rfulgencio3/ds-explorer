@@ -159,6 +159,49 @@ const StructureUI = (() => {
     populateSnippets(meta.codeSnippets);
   }
 
+  // ── Bootstrap ─────────────────────────────────────────────────────────────
+
+  /**
+   * Inicializa todos os elementos de UI de uma página de estrutura de uma vez,
+   * eliminando o bloco de ~15 linhas de boilerplate de cada arquivo de estrutura.
+   *
+   * @param {object}  [opts]
+   * @param {string}  [opts.fallbackName]  - Nome exibido se meta.name estiver ausente
+   * @param {string}  [opts.memoryType]    - Tipo passado para MemoryPanel.init()
+   * @param {object}  [opts.fieldMap]      - Sobrescreve DEFAULT_FIELD_MAP
+   * @param {number}  [opts.maxSize]       - Seta inputSize.max (omitir = usar HTML)
+   * @param {string}  [opts.selectHtml]    - innerHTML do select-operation (omitir = manter)
+   * @returns {{ meta, selectOp, inputSize, btnGenerate, btnExecute,
+   *             fieldValue, fieldIndex, fieldNewVal, inputValue, inputIndex, inputNewVal }}
+   */
+  function bootstrap({ fallbackName, memoryType, fieldMap, maxSize, selectHtml } = {}) {
+    const meta        = window.__STRUCTURE_DATA__;
+    const selectOp    = document.getElementById('select-operation');
+    const inputSize   = document.getElementById('input-size');
+    const btnGenerate = document.getElementById('btn-generate');
+    const btnExecute  = document.getElementById('btn-execute');
+    const fieldValue  = document.getElementById('field-value');
+    const fieldIndex  = document.getElementById('field-index');
+    const fieldNewVal = document.getElementById('field-new-value');
+    const inputValue  = document.getElementById('input-value');
+    const inputIndex  = document.getElementById('input-index');
+    const inputNewVal = document.getElementById('input-new-value');
+
+    if (maxSize   != null) inputSize.max       = String(maxSize);
+    if (selectHtml != null) selectOp.innerHTML = selectHtml;
+
+    const map = fieldMap || DEFAULT_FIELD_MAP;
+    function _sync() { syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, map); }
+    selectOp.addEventListener('change', _sync);
+    _sync();
+
+    initMeta(meta, fallbackName);
+    if (memoryType) MemoryPanel.init(memoryType);
+
+    return { meta, selectOp, inputSize, btnGenerate, btnExecute,
+             fieldValue, fieldIndex, fieldNewVal, inputValue, inputIndex, inputNewVal };
+  }
+
   // ── API pública ───────────────────────────────────────────────────────────
 
   return {
@@ -168,5 +211,6 @@ const StructureUI = (() => {
     populateUseCases,
     populateSnippets,
     initMeta,
+    bootstrap,
   };
 })();

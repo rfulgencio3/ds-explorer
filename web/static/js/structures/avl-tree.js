@@ -5,36 +5,29 @@ function initStructurePage() {
   let root = null;
   let nextId = 0;
   const MAX_SIZE = 24;
-  const BYTES_PER_NODE = 28;
-  const BASE_ADDR = 0xB000;
-  let _prevAccessedId = -1;
 
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Arvore AVL',
+    memoryType:   'tree',
+    maxSize:      15,
+    fieldMap:     { insert: ['value'], search: ['value'], remove: ['value'] },
+    selectHtml: `
+      <optgroup label="AVL">
+        <option value="insert">Inserir</option>
+        <option value="search">Buscar</option>
+        <option value="remove">Remover</option>
+      </optgroup>
+    `,
+  });
 
-  inputSize.max = '15';
-  selectOp.innerHTML = `
-    <optgroup label="AVL">
-      <option value="insert">Inserir</option>
-      <option value="search">Buscar</option>
-      <option value="remove">Remover</option>
-    </optgroup>
-  `;
-
-  const fieldMap = { insert: ['value'], search: ['value'], remove: ['value'] };
-  function _syncFields() { StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap); }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Arvore AVL');
-  MemoryPanel.init('tree');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forLinked({
+    type: 'tree', bytesPerNode: 28, baseAddr: 0xB000,
+    hashMult: 2246822519, rangeSize: 0x5000, alignMask: ~0xF,
+    idleNote: 'AVL guarda valor, dois ponteiros e altura.',
+    missNote: addr => `Acesso ao no em ${addr}.`,
+  });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(15, Math.max(2, parseInt(inputSize.value, 10) || 7));
@@ -46,7 +39,7 @@ function initStructurePage() {
       if (!values.includes(value)) values.push(value);
     }
     values.forEach(value => { root = _insertAvl(root, value, []); });
-    _prevAccessedId = -1;
+    _mem.reset();
     Animator.load([{
       description: `AVL gerada com ${size} valores. Cada no mostra h=altura e b=fator de balanceamento.`,
       snapshot: _snapshot(root),
@@ -58,7 +51,7 @@ function initStructurePage() {
   btnExecute.addEventListener('click', () => {
     const value = parseInt(inputValue.value, 10);
     if (isNaN(value)) { alert('Informe um valor.'); return; }
-    _prevAccessedId = -1;
+    _mem.reset();
     let result = { steps: [] };
     switch (selectOp.value) {
       case 'insert': result = _insert(value); break;
@@ -210,26 +203,7 @@ function initStructurePage() {
 
   function _minNode(node) { while (node.left) node = node.left; return node; }
 
-  function _nodeAddr(id) {
-    const offset = ((id * 2246822519) >>> 0) % 0x5000;
-    const hex = (BASE_ADDR + (offset & ~0xF)).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _buildMemory(tree, accessedId) {
-    const nodes = _flatten(tree);
-    const hit = accessedId != null && accessedId === _prevAccessedId;
-    if (accessedId != null) _prevAccessedId = accessedId;
-    return {
-      type: 'tree',
-      totalBytes: nodes.length * BYTES_PER_NODE,
-      event: accessedId == null ? null : hit ? 'hit' : 'miss',
-      cycles: accessedId == null ? null : hit ? 4 : 200,
-      note: accessedId == null ? 'AVL guarda valor, dois ponteiros e altura.' : `Acesso ao no em ${_nodeAddr(accessedId)}.`,
-      accessedIdx: accessedId == null ? null : nodes.findIndex(n => n.id === accessedId),
-      layout: nodes.map(n => ({ value: n.value, addr: _nodeAddr(n.id) })),
-    };
-  }
+  function _buildMemory(tree, accessedId) { return _mem.buildMemory(_flatten(tree), accessedId); }
 
   function _snapshot(tree, highlighted = [], state = 'visiting') {
     const nodes = [];

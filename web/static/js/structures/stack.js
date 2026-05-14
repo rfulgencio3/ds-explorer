@@ -11,106 +11,35 @@ function initStructurePage() {
   let nextId = 0;
   const MAX_SIZE = 30;
 
-  // ── Constantes de memória ──────────────────────────────────────────────
-  // Nó de pilha encadeada (64-bit):
-  //   value (int32):  4 bytes
-  //   next (ptr64):   8 bytes
-  //   padding:        4 bytes  → total = 16 bytes por nó
-  // Alocação dinâmica: cada nó vai para um endereço aleatório no heap.
-  const BYTES_PER_NODE = 16;
-  const BASE_ADDR      = 0x4000;
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Pilha',
+    memoryType:   'stack',
+    fieldMap:     { push: ['value'], pop: [], peek: [], search: ['value'] },
+    selectHtml: `
+      <optgroup label="Pilha">
+        <option value="push">Push (empilhar)</option>
+        <option value="pop">Pop (desempilhar)</option>
+        <option value="peek">Peek (ver topo)</option>
+        <option value="search">Buscar por valor</option>
+      </optgroup>
+    `,
+  });
 
-  let _prevAccessedId = -1;
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forLinked({
+    type: 'stack', bytesPerNode: 16, baseAddr: 0x4000,
+    hashMult: 2654435761, rangeSize: 0x4000, alignMask: ~0xF,
+  });
 
-  // ── UI refs ────────────────────────────────────────────────────────────
-  const meta        = window.__STRUCTURE_DATA__;
-  const selectOp    = document.getElementById('select-operation');
-  const inputSize   = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute  = document.getElementById('btn-execute');
-  const fieldValue  = document.getElementById('field-value');
-  const fieldIndex  = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue  = document.getElementById('input-value');
-
-  // ── Substituir opções do select por operações de pilha ─────────────────
-  selectOp.innerHTML = `
-    <optgroup label="Pilha">
-      <option value="push">Push (empilhar)</option>
-      <option value="pop">Pop (desempilhar)</option>
-      <option value="peek">Peek (ver topo)</option>
-      <option value="search">Buscar por valor</option>
-    </optgroup>
-  `;
-
-  const fieldMap = {
-    push:   ['value'],
-    pop:    [],
-    peek:   [],
-    search: ['value'],
-  };
-
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Pilha');
-
-  MemoryPanel.init('stack');
-
-  // ── Memory helpers ─────────────────────────────────────────────────────
-
-  function _nodeAddr(id) {
-    const offset  = ((id * 2654435761) >>> 0) % 0x4000;
-    const aligned = offset & ~0xF;
-    const hex = (BASE_ADDR + aligned).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _cacheFor(nodeId) {
-    const hit = nodeId === _prevAccessedId;
-    _prevAccessedId = nodeId;
-    if (hit) {
-      return { event: 'hit',  cycles: 4,   note: 'Nó ainda presente no cache L1 — acesso recente' };
-    }
-    return {
-      event:  'miss',
-      cycles: 200,
-      note:   `Ponteiro aponta para ${_nodeAddr(nodeId)} — endereço não contíguo, busca na RAM`,
-    };
-  }
-
-  function _buildMemory(nodeList, accessedNodeId) {
-    const totalBytes = nodeList.length * BYTES_PER_NODE;
-    const cache = (accessedNodeId != null && accessedNodeId >= 0)
-      ? _cacheFor(accessedNodeId)
-      : { event: null, cycles: null, note: null };
-
-    const layout = nodeList.map(n => ({ value: n.value, addr: _nodeAddr(n.id) }));
-
-    const accessedIdx = (accessedNodeId != null)
-      ? nodeList.findIndex(n => n.id === accessedNodeId)
-      : null;
-
-    return {
-      type:        'stack',
-      totalBytes,
-      event:       cache.event,
-      cycles:      cache.cycles,
-      note:        cache.note,
-      accessedIdx: accessedIdx >= 0 ? accessedIdx : null,
-      layout,
-    };
-  }
+  function _buildMemory(nodeList, accessedNodeId) { return _mem.buildMemory(nodeList, accessedNodeId); }
 
   // ── Generate ─────────────────────────────────────────────────────────
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(MAX_SIZE, Math.max(2, parseInt(inputSize.value, 10) || 5));
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
-    _prevAccessedId = -1;
+    _mem.reset();
     Animator.load([{
       description: `Pilha gerada com ${size} elementos. O topo (top) está à esquerda.`,
       snapshot: _snapshot(nodes, []),
@@ -130,7 +59,7 @@ function initStructurePage() {
     const op    = selectOp.value;
     const value = parseInt(inputValue.value, 10);
     let steps   = [];
-    _prevAccessedId = -1;
+    _mem.reset();
 
     switch (op) {
       case 'push':   steps = _push(value); break;

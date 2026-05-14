@@ -9,42 +9,21 @@ function initStructurePage() {
   let data = [];
   let capacity = 0;
 
-  const MAX_SIZE = 30;
+  const MAX_SIZE    = 30;
   const BYTES_PER_ELEM = 4;
-  const ELEMS_PER_LINE = 16;
-  const BASE_ADDR = 0x1800;
 
-  let _prevCacheLine = -1;
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { selectOp, inputSize, btnGenerate, btnExecute, inputValue, inputIndex, inputNewVal } =
+    StructureUI.bootstrap({ fallbackName: 'Lista Dinâmica', memoryType: 'arraylist' });
 
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
-  const inputIndex = document.getElementById('input-index');
-  const inputNewVal = document.getElementById('input-new-value');
-
-  const fieldMap = StructureUI.DEFAULT_FIELD_MAP;
-
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Lista Dinâmica');
-
-  MemoryPanel.init('arraylist');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forArray({ type: 'arraylist', bytesPerElem: 4, elemsPerLine: 16, baseAddr: 0x1800 });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(MAX_SIZE, Math.max(2, parseInt(inputSize.value, 10) || 6));
     data = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 1);
     capacity = _nextCapacity(size);
-    _prevCacheLine = -1;
+    _mem.reset();
     Animator.load([{
       description: `Lista dinâmica gerada com ${size} elementos e capacidade ${capacity}.`,
       snapshot: _snapshot(data, []),
@@ -63,7 +42,7 @@ function initStructurePage() {
     const newVal = parseInt(inputNewVal.value, 10);
 
     let steps = [];
-    _prevCacheLine = -1;
+    _mem.reset();
 
     switch (op) {
       case 'insertBegin':   steps = _insertAt(data.slice(), 0, value); break;
@@ -93,48 +72,15 @@ function initStructurePage() {
     return Math.min(next, MAX_SIZE);
   }
 
-  function _addr(i) {
-    const hex = (BASE_ADDR + i * BYTES_PER_ELEM).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _cacheFor(idx) {
-    const line = Math.floor(idx / ELEMS_PER_LINE);
-    const hit = line === _prevCacheLine;
-    _prevCacheLine = line;
-    if (hit) {
-      return {
-        event: 'hit',
-        cycles: 4,
-        note: `Posição ${idx} ainda está na cache line ${line} do buffer atual.`,
-      };
-    }
-    return {
-      event: 'miss',
-      cycles: 200,
-      note: `Cache line ${line} não estava carregada; acesso ao buffer contíguo na RAM.`,
-    };
-  }
-
   function _buildMemory(arr, accessedIdx) {
-    const cache = (accessedIdx != null && accessedIdx >= 0 && accessedIdx < arr.length)
-      ? _cacheFor(accessedIdx)
-      : { event: null, cycles: null, note: null };
-
-    const layout = Array.from({ length: capacity }, (_, i) => ({
+    const result = _mem.buildMemory(arr, accessedIdx);
+    result.totalBytes = capacity * BYTES_PER_ELEM;
+    result.note       = result.note || `Tamanho lógico ${arr.length}, capacidade ${capacity}.`;
+    result.layout     = Array.from({ length: capacity }, (_, i) => ({
       value: i < arr.length ? arr[i] : '·',
-      addr: _addr(i),
+      addr:  _mem.addr(i),
     }));
-
-    return {
-      type: 'arraylist',
-      totalBytes: capacity * BYTES_PER_ELEM,
-      event: cache.event,
-      cycles: cache.cycles,
-      note: cache.note || `Tamanho lógico ${arr.length}, capacidade ${capacity}.`,
-      accessedIdx: (accessedIdx != null && accessedIdx >= 0) ? accessedIdx : null,
-      layout,
-    };
+    return result;
   }
 
   function _insertAt(arr, idx, val) {

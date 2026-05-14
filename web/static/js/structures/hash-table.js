@@ -7,37 +7,25 @@ function initStructurePage() {
   let capacity = 11;
   const MAX_CAPACITY = 23;
   const BYTES_PER_BUCKET = 8;
-  const BUCKETS_PER_LINE = 8;
-  const BASE_ADDR = 0x9000;
   const TOMBSTONE = '#';
-  let _prevCacheLine = -1;
 
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { selectOp, inputSize, btnGenerate, btnExecute, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Tabela Hash',
+    memoryType:   'hash-table',
+    maxSize:      14,
+    fieldMap:     { insert: ['value'], search: ['value'], remove: ['value'] },
+    selectHtml: `
+      <optgroup label="Tabela Hash">
+        <option value="insert">Inserir chave</option>
+        <option value="search">Buscar chave</option>
+        <option value="remove">Remover chave</option>
+      </optgroup>
+    `,
+  });
 
-  inputSize.max = '14';
-  selectOp.innerHTML = `
-    <optgroup label="Tabela Hash">
-      <option value="insert">Inserir chave</option>
-      <option value="search">Buscar chave</option>
-      <option value="remove">Remover chave</option>
-    </optgroup>
-  `;
-
-  const fieldMap = { insert: ['value'], search: ['value'], remove: ['value'] };
-  function _syncFields() { StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap); }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Tabela Hash');
-  MemoryPanel.init('hash-table');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forArray({ type: 'hash-table', bytesPerElem: 8, elemsPerLine: 8, baseAddr: 0x9000 });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(14, Math.max(2, parseInt(inputSize.value, 10) || 6));
@@ -45,7 +33,7 @@ function initStructurePage() {
     table = Array(capacity).fill(null);
     count = 0;
     while (count < size) _insertRaw(Math.floor(Math.random() * 90) + 1);
-    _prevCacheLine = -1;
+    _mem.reset();
     Animator.load([{
       description: `Tabela hash gerada com ${count} chaves e ${capacity} buckets. Hash usado: chave mod ${capacity}.`,
       snapshot: _snapshot(table),
@@ -57,7 +45,7 @@ function initStructurePage() {
   btnExecute.addEventListener('click', () => {
     const value = parseInt(inputValue.value, 10);
     if (isNaN(value)) { alert('Informe uma chave numerica.'); return; }
-    _prevCacheLine = -1;
+    _mem.reset();
     let result = { steps: [] };
     switch (selectOp.value) {
       case 'insert': result = _insert(value); break;
@@ -92,31 +80,12 @@ function initStructurePage() {
     }
   }
 
-  function _addr(i) {
-    const hex = (BASE_ADDR + i * BYTES_PER_BUCKET).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _cacheFor(idx) {
-    const line = Math.floor(idx / BUCKETS_PER_LINE);
-    const hit = line === _prevCacheLine;
-    _prevCacheLine = line;
-    return hit
-      ? { event: 'hit', cycles: 4, note: `Bucket ${idx} esta na mesma cache line ${line} da sondagem anterior.` }
-      : { event: 'miss', cycles: 200, note: `Acessando bucket ${idx}. Linear probing tende a acessar buckets proximos.` };
-  }
-
   function _buildMemory(state, accessedIdx, note = null) {
-    const cache = accessedIdx != null ? _cacheFor(accessedIdx) : { event: null, cycles: null, note: null };
-    return {
-      type: 'hash-table',
-      totalBytes: capacity * BYTES_PER_BUCKET,
-      event: cache.event,
-      cycles: cache.cycles,
-      note: note || cache.note || `Carga ${count}/${capacity}; buckets vazios sao exibidos como ponto.`,
-      accessedIdx: accessedIdx != null ? accessedIdx : null,
-      layout: state.map((value, i) => ({ value: _label(value), addr: _addr(i) })),
-    };
+    const result = _mem.buildMemory(state, accessedIdx, note || undefined);
+    result.totalBytes = capacity * BYTES_PER_BUCKET;
+    result.note       = result.note || `Carga ${count}/${capacity}; buckets vazios sao exibidos como ponto.`;
+    result.layout     = state.map((v, i) => ({ value: _label(v), addr: _mem.addr(i) }));
+    return result;
   }
 
   function _insert(value) {

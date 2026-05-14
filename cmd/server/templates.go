@@ -64,32 +64,27 @@ var usageFrequencyTooltipMap = map[string]string{
 	"Raro":         "Raro: aplicada em casos muito especializados ou como curiosidade academica.",
 }
 
-func usageFrequencyClass(value string) string {
-	if c, ok := usageFrequencyClassMap[strings.TrimSpace(value)]; ok {
-		return c
+func mapLookup(m map[string]string, value, fallback string) string {
+	if v, ok := m[strings.TrimSpace(value)]; ok {
+		return v
 	}
-	return ""
+	return fallback
+}
+
+func usageFrequencyClass(value string) string {
+	return mapLookup(usageFrequencyClassMap, value, "")
 }
 
 func usageFrequencyTooltip(value string) string {
-	if t, ok := usageFrequencyTooltipMap[strings.TrimSpace(value)]; ok {
-		return t
-	}
-	return "Frequencia de uso desta estrutura em aplicacoes reais."
+	return mapLookup(usageFrequencyTooltipMap, value, "Frequencia de uso desta estrutura em aplicacoes reais.")
 }
 
 func complexityClass(value string) string {
-	if c, ok := complexityClassMap[strings.TrimSpace(value)]; ok {
-		return c
-	}
-	return "card-complexity--neutral"
+	return mapLookup(complexityClassMap, value, "card-complexity--neutral")
 }
 
 func complexityTooltip(value string) string {
-	if t, ok := complexityTooltipMap[strings.TrimSpace(value)]; ok {
-		return t
-	}
-	return "Notacao assintotica que indica como o custo cresce conforme a entrada aumenta."
+	return mapLookup(complexityTooltipMap, value, "Notacao assintotica que indica como o custo cresce conforme a entrada aumenta.")
 }
 
 func loadTemplates() (map[string]*template.Template, error) {

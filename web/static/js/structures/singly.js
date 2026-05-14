@@ -9,110 +9,24 @@ function initStructurePage() {
   let nodes  = [];
   let nextId = 0;
 
-  // ── Constantes de memória ──────────────────────────────────────────────
-  // Nó de lista encadeada simples (64-bit):
-  //   value (int32):  4 bytes
-  //   next (ptr64):   8 bytes
-  //   padding:        4 bytes  → total = 16 bytes por nó
-  // Alocação dinâmica: cada nó vai para um endereço aleatório no heap.
-  // Consequência: cada acesso via ponteiro = nova cache line → MISS.
-  const BYTES_PER_NODE = 16;
-  const BASE_ADDR      = 0x2000;
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { btnGenerate, btnExecute, inputSize, inputValue, inputIndex, inputNewVal } =
+    StructureUI.bootstrap({ fallbackName: 'Lista Simples', memoryType: 'singly' });
 
-  // Último nodeId acessado — para detectar acesso repetido (raro, mas possível)
-  let _prevAccessedId = -1;
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forLinked({
+    type: 'singly', bytesPerNode: 16, baseAddr: 0x2000,
+    hashMult: 2654435761, rangeSize: 0x4000, alignMask: ~0xF,
+  });
 
-  // ── UI refs ────────────────────────────────────────────────────────────
-  const meta        = window.__STRUCTURE_DATA__;
-  const selectOp    = document.getElementById('select-operation');
-  const inputSize   = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute  = document.getElementById('btn-execute');
-  const fieldValue  = document.getElementById('field-value');
-  const fieldIndex  = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue  = document.getElementById('input-value');
-  const inputIndex  = document.getElementById('input-index');
-  const inputNewVal = document.getElementById('input-new-value');
-
-  const fieldMap = StructureUI.DEFAULT_FIELD_MAP;
-
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Lista Simples');
-
-  MemoryPanel.init('singly');
-
-  // ── Memory helpers ─────────────────────────────────────────────────────
-
-  /**
-   * Gera um endereço simulado de heap para o nó com `id`.
-   * Usa hash do id para simular alocações fragmentadas.
-   */
-  function _nodeAddr(id) {
-    // Knuth multiplicative hash → spread between 0x2000 e 0x5FFF
-    const offset  = ((id * 2654435761) >>> 0) % 0x4000;
-    const aligned = offset & ~0xF;  // alinha em 16 bytes
-    const hex = (BASE_ADDR + aligned).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  /**
-   * Calcula evento de cache ao acessar o nó com `nodeId`.
-   * Listas encadeadas sofrem pointer chasing: cada nó fica em um endereço
-   * diferente no heap → praticamente todo acesso é um cache miss.
-   */
-  function _cacheFor(nodeId) {
-    const hit = nodeId === _prevAccessedId;
-    _prevAccessedId = nodeId;
-    if (hit) {
-      return { event: 'hit',  cycles: 4,   note: 'Nó ainda presente no cache L1 — acesso recente' };
-    }
-    return {
-      event:  'miss',
-      cycles: 200,
-      note:   `Ponteiro aponta para ${_nodeAddr(nodeId)} — endereço não contíguo, busca na RAM`,
-    };
-  }
-
-  /**
-   * Constrói o objeto `memory` para um step.
-   * `accessedNodeId` = id do nó acessado neste step (null = sem acesso específico).
-   */
-  function _buildMemory(nodeList, accessedNodeId) {
-    const totalBytes = nodeList.length * BYTES_PER_NODE;
-    const cache = (accessedNodeId != null && accessedNodeId >= 0)
-      ? _cacheFor(accessedNodeId)
-      : { event: null, cycles: null, note: null };
-
-    const layout = nodeList.map(n => ({ value: n.value, addr: _nodeAddr(n.id) }));
-
-    // accessedIdx = posição no layout (para highlight visual)
-    const accessedIdx = (accessedNodeId != null)
-      ? nodeList.findIndex(n => n.id === accessedNodeId)
-      : null;
-
-    return {
-      type:        'singly',
-      totalBytes,
-      event:       cache.event,
-      cycles:      cache.cycles,
-      note:        cache.note,
-      accessedIdx: accessedIdx >= 0 ? accessedIdx : null,
-      layout,
-    };
-  }
+  function _buildMemory(nodeList, accessedNodeId) { return _mem.buildMemory(nodeList, accessedNodeId); }
 
   // ── Generate ─────────────────────────────────────────────────────────
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(30, Math.max(2, parseInt(inputSize.value) || 5));
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
-    _prevAccessedId = -1;
+    _mem.reset();
     Animator.load([{
       description: 'Lista gerada com valores aleatórios.',
       snapshot: _snapshot(nodes, []),
@@ -134,7 +48,7 @@ function initStructurePage() {
     const index  = parseInt(inputIndex.value);
     const newVal = parseInt(inputNewVal.value);
     let steps    = [];
-    _prevAccessedId = -1;
+    _mem.reset();
 
     switch (op) {
       case 'insertBegin':   steps = _insertBegin(value); break;

@@ -11,56 +11,29 @@ function initStructurePage() {
   let nextId = 0;
   const MAX_SIZE = 30;
 
-  const BYTES_PER_NODE = 24;
-  const BASE_ADDR = 0x7000;
-
-  let _prevAccessedId = -1;
-
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
-
-  selectOp.innerHTML = `
-    <optgroup label="Deque">
-      <option value="pushFront">Push front (inserir na frente)</option>
-      <option value="pushBack">Push back (inserir no fim)</option>
-      <option value="popFront">Pop front (remover da frente)</option>
-      <option value="popBack">Pop back (remover do fim)</option>
-      <option value="peekFront">Peek front</option>
-      <option value="peekBack">Peek back</option>
-      <option value="search">Buscar por valor</option>
-    </optgroup>
-  `;
-
-  const fieldMap = {
-    pushFront: ['value'],
-    pushBack: ['value'],
-    popFront: [],
-    popBack: [],
-    peekFront: [],
-    peekBack: [],
-    search: ['value'],
-  };
-
-  function _syncFields() {
-    StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap);
-  }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Deque');
-  MemoryPanel.init('deque');
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { selectOp, inputSize, btnGenerate, btnExecute, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Deque',
+    memoryType:   'deque',
+    fieldMap: { pushFront: ['value'], pushBack: ['value'], popFront: [], popBack: [],
+                peekFront: [], peekBack: [], search: ['value'] },
+    selectHtml: `
+      <optgroup label="Deque">
+        <option value="pushFront">Push front (inserir na frente)</option>
+        <option value="pushBack">Push back (inserir no fim)</option>
+        <option value="popFront">Pop front (remover da frente)</option>
+        <option value="popBack">Pop back (remover do fim)</option>
+        <option value="peekFront">Peek front</option>
+        <option value="peekBack">Peek back</option>
+        <option value="search">Buscar por valor</option>
+      </optgroup>
+    `,
+  });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(MAX_SIZE, Math.max(2, parseInt(inputSize.value, 10) || 6));
     nodes = Array.from({ length: size }, () => ({ id: nextId++, value: Math.floor(Math.random() * 90) + 1 }));
-    _prevAccessedId = -1;
+    _mem.reset();
     Animator.load([{
       description: `Deque gerado com ${size} elementos. front fica à esquerda e rear à direita, ambos acessíveis em O(1).`,
       snapshot: _snapshot(nodes),
@@ -78,7 +51,7 @@ function initStructurePage() {
 
     const value = parseInt(inputValue.value, 10);
     let result = { steps: [] };
-    _prevAccessedId = -1;
+    _mem.reset();
 
     switch (op) {
       case 'pushFront':
@@ -110,41 +83,15 @@ function initStructurePage() {
     }
   });
 
-  function _nodeAddr(id) {
-    const offset = ((id * 2246822519) >>> 0) % 0x4000;
-    const aligned = offset & ~0x17;
-    const hex = (BASE_ADDR + aligned).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forLinked({
+    type: 'deque', bytesPerNode: 24, baseAddr: 0x7000,
+    hashMult: 2246822519, rangeSize: 0x4000, alignMask: ~0x17,
+    idleNote: 'Deque duplamente encadeado: cada nó guarda next e prev.',
+    missNote: addr => `Ponteiro leva a ${addr} — endereço disperso no heap.`,
+  });
 
-  function _cacheFor(nodeId) {
-    const hit = nodeId === _prevAccessedId;
-    _prevAccessedId = nodeId;
-    if (hit) {
-      return { event: 'hit', cycles: 4, note: 'Nó ainda presente no cache L1 — acesso recente.' };
-    }
-    return {
-      event: 'miss',
-      cycles: 200,
-      note: `Ponteiro leva a ${_nodeAddr(nodeId)} — endereço disperso no heap.`,
-    };
-  }
-
-  function _buildMemory(nodeList, accessedNodeId, noteOverride = null) {
-    const cache = (accessedNodeId != null && accessedNodeId >= 0)
-      ? _cacheFor(accessedNodeId)
-      : { event: null, cycles: null, note: null };
-
-    return {
-      type: 'deque',
-      totalBytes: nodeList.length * BYTES_PER_NODE,
-      event: cache.event,
-      cycles: cache.cycles,
-      note: noteOverride || cache.note || 'Deque duplamente encadeado: cada nó guarda next e prev.',
-      accessedIdx: accessedNodeId != null ? nodeList.findIndex(node => node.id === accessedNodeId) : null,
-      layout: nodeList.map(node => ({ value: node.value, addr: _nodeAddr(node.id) })),
-    };
-  }
+  function _buildMemory(nodeList, accessedNodeId) { return _mem.buildMemory(nodeList, accessedNodeId); }
 
   function _snapshot(list, highlightedIdxs = [], hlState = 'visiting', prependNodes = [], prependState = 'neutral', appendNodes = [], appendState = 'neutral') {
     const allNodes = [

@@ -4,43 +4,33 @@
 function initStructurePage() {
   let data = [];
   const MAX_SIZE = 30;
-  const BYTES_PER_ELEM = 4;
-  const ELEMS_PER_LINE = 16;
-  const BASE_ADDR = 0x8000;
-  let _prevCacheLine = -1;
 
-  const meta = window.__STRUCTURE_DATA__;
-  const selectOp = document.getElementById('select-operation');
-  const inputSize = document.getElementById('input-size');
-  const btnGenerate = document.getElementById('btn-generate');
-  const btnExecute = document.getElementById('btn-execute');
-  const fieldValue = document.getElementById('field-value');
-  const fieldIndex = document.getElementById('field-index');
-  const fieldNewVal = document.getElementById('field-new-value');
-  const inputValue = document.getElementById('input-value');
+  // ── UI ────────────────────────────────────────────────────────────────
+  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+    fallbackName: 'Heap',
+    memoryType:   'heap',
+    fieldMap:     { insert: ['value'], extractMin: [], peek: [], search: ['value'] },
+    selectHtml: `
+      <optgroup label="Heap">
+        <option value="insert">Insert</option>
+        <option value="extractMin">Extract min</option>
+        <option value="peek">Peek min</option>
+        <option value="search">Buscar por valor</option>
+      </optgroup>
+    `,
+  });
 
-  selectOp.innerHTML = `
-    <optgroup label="Heap">
-      <option value="insert">Insert</option>
-      <option value="extractMin">Extract min</option>
-      <option value="peek">Peek min</option>
-      <option value="search">Buscar por valor</option>
-    </optgroup>
-  `;
-
-  const fieldMap = { insert: ['value'], extractMin: [], peek: [], search: ['value'] };
-  function _syncFields() { StructureUI.syncFields(selectOp, fieldValue, fieldIndex, fieldNewVal, fieldMap); }
-  selectOp.addEventListener('change', _syncFields);
-  _syncFields();
-
-  StructureUI.initMeta(meta, 'Heap');
-  MemoryPanel.init('heap');
+  // ── Memory ────────────────────────────────────────────────────────────
+  const _mem = MemoryHelpers.forArray({
+    type: 'heap', bytesPerElem: 4, elemsPerLine: 16, baseAddr: 0x8000,
+    idleNote: 'Heap binario armazenado em array contiguo.',
+  });
 
   btnGenerate.addEventListener('click', () => {
     const size = Math.min(MAX_SIZE, Math.max(2, parseInt(inputSize.value, 10) || 7));
     data = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 1);
     _heapify(data);
-    _prevCacheLine = -1;
+    _mem.reset();
     Animator.load([{
       description: `Min Heap gerado com ${size} elementos. A raiz fica em [0]; filhos de i ficam em 2i+1 e 2i+2.`,
       snapshot: _snapshot(data, [0], 'success'),
@@ -57,7 +47,7 @@ function initStructurePage() {
     const op = selectOp.value;
     const value = parseInt(inputValue.value, 10);
     let steps = [];
-    _prevCacheLine = -1;
+    _mem.reset();
 
     switch (op) {
       case 'insert': steps = _insert(value); break;
@@ -72,32 +62,7 @@ function initStructurePage() {
     }
   });
 
-  function _addr(i) {
-    const hex = (BASE_ADDR + i * BYTES_PER_ELEM).toString(16).toUpperCase();
-    return '0x' + hex.padStart(4, '0');
-  }
-
-  function _cacheFor(idx) {
-    const line = Math.floor(idx / ELEMS_PER_LINE);
-    const hit = line === _prevCacheLine;
-    _prevCacheLine = line;
-    return hit
-      ? { event: 'hit', cycles: 4, note: `Indice ${idx} ainda esta na cache line ${line}.` }
-      : { event: 'miss', cycles: 200, note: `Acesso ao indice ${idx}; heap usa array contiguo, mas pula entre pai e filho.` };
-  }
-
-  function _buildMemory(arr, accessedIdx, note = null) {
-    const cache = accessedIdx != null ? _cacheFor(accessedIdx) : { event: null, cycles: null, note: null };
-    return {
-      type: 'heap',
-      totalBytes: arr.length * BYTES_PER_ELEM,
-      event: cache.event,
-      cycles: cache.cycles,
-      note: note || cache.note || 'Heap binario armazenado em array contiguo.',
-      accessedIdx: accessedIdx != null ? accessedIdx : null,
-      layout: arr.map((value, i) => ({ value, addr: _addr(i) })),
-    };
-  }
+  function _buildMemory(arr, accessedIdx) { return _mem.buildMemory(arr, accessedIdx); }
 
   function _insert(value) {
     if (isNaN(value)) { alert('Informe um valor.'); return []; }
