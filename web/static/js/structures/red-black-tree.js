@@ -19,7 +19,7 @@ function initStructurePage() {
   const BYTES_PER_NODE = 32; // value(4) + color(1+3pad) + left*(8) + right*(8) + parent*(8)
 
   // ── UI ────────────────────────────────────────────────────────────────
-  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+  const { btnGenerate, btnExecute, inputSize, inputValue, selectOp } = StructureUI.bootstrap({
     fallbackName: 'Arvore Rubro-Negra',
     memoryType:   'tree',
     maxSize:      15,

@@ -7,7 +7,7 @@ function initStructurePage() {
   const MAX_SIZE = 24;
 
   // ── UI ────────────────────────────────────────────────────────────────
-  const { btnGenerate, btnExecute, inputSize, inputValue } = StructureUI.bootstrap({
+  const { btnGenerate, btnExecute, inputSize, inputValue, selectOp } = StructureUI.bootstrap({
     fallbackName: 'Arvore AVL',
     memoryType:   'tree',
     maxSize:      15,
