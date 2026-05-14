@@ -93,7 +93,7 @@ function initStructurePage() {
     if (_flatten(root).length >= MAX_SIZE) { alert(`A AVL suporta no maximo ${MAX_SIZE} nos.`); return { steps: [], root }; }
     const tree = _clone(root);
     const steps = [{ description: `Inserir ${value}: mesma busca da BST, seguida de atualizacao de altura.`, snapshot: _snapshot(tree), memory: _buildMemory(tree, null) }];
-    const result = _insertAvl(tree, value, steps);
+    const result = _insertAvl(tree, value, steps, tree);
     steps.push({
       description: `Insercao concluida. A AVL restaura |balance| <= 1 com rotacoes quando necessario. Custo O(log n).`,
       snapshot: _snapshot(result, [], 'neutral'),
@@ -102,46 +102,47 @@ function initStructurePage() {
     return { steps, root: result };
   }
 
-  function _insertAvl(node, value, steps) {
+  function _insertAvl(node, value, steps, snapRoot) {
+    const sr = snapRoot !== undefined ? snapRoot : (root || node);
     if (!node) {
       const created = _newNode(value);
-      steps.push?.({ description: `Criando no ${value}.`, snapshot: _snapshot(root, [], 'neutral'), memory: _buildMemory(root, null) });
+      steps.push?.({ description: `Criando no ${value}.`, snapshot: _snapshot(sr, [], 'neutral'), memory: _buildMemory(sr, null) });
       return created;
     }
 
     steps.push?.({
       description: `Comparando ${value} com ${node.value}. ${value < node.value ? 'Descer esquerda.' : value > node.value ? 'Descer direita.' : 'Duplicado; ignorar.'}`,
-      snapshot: _snapshot(root || node, [node.id], 'visiting'),
-      memory: _buildMemory(root || node, node.id),
+      snapshot: _snapshot(sr, [node.id], 'visiting'),
+      memory: _buildMemory(sr, node.id),
     });
 
-    if (value < node.value) node.left = _insertAvl(node.left, value, steps);
-    else if (value > node.value) node.right = _insertAvl(node.right, value, steps);
+    if (value < node.value) node.left = _insertAvl(node.left, value, steps, sr);
+    else if (value > node.value) node.right = _insertAvl(node.right, value, steps, sr);
     else return node;
 
     _update(node);
     const b = _balance(node);
     steps.push?.({
       description: `Atualizando ${node.value}: altura=${node.height}, balance=${b}. ${Math.abs(b) > 1 ? 'Rebalancear.' : 'Dentro do limite.'}`,
-      snapshot: _snapshot(root || node, [node.id], Math.abs(b) > 1 ? 'warning' : 'visiting'),
-      memory: _buildMemory(root || node, node.id),
+      snapshot: _snapshot(sr, [node.id], Math.abs(b) > 1 ? 'warning' : 'visiting'),
+      memory: _buildMemory(sr, node.id),
     });
 
     if (b > 1 && value < node.left.value) {
-      steps.push?.({ description: `Caso LL em ${node.value}: rotacao direita.`, snapshot: _snapshot(root || node, [node.id, node.left.id], 'warning'), memory: _buildMemory(root || node, node.id) });
+      steps.push?.({ description: `Caso LL em ${node.value}: rotacao direita.`, snapshot: _snapshot(sr, [node.id, node.left.id], 'warning'), memory: _buildMemory(sr, node.id) });
       return _rotateRight(node);
     }
     if (b < -1 && value > node.right.value) {
-      steps.push?.({ description: `Caso RR em ${node.value}: rotacao esquerda.`, snapshot: _snapshot(root || node, [node.id, node.right.id], 'warning'), memory: _buildMemory(root || node, node.id) });
+      steps.push?.({ description: `Caso RR em ${node.value}: rotacao esquerda.`, snapshot: _snapshot(sr, [node.id, node.right.id], 'warning'), memory: _buildMemory(sr, node.id) });
       return _rotateLeft(node);
     }
     if (b > 1 && value > node.left.value) {
-      steps.push?.({ description: `Caso LR em ${node.value}: rotacao esquerda no filho, depois direita.`, snapshot: _snapshot(root || node, [node.id, node.left.id], 'warning'), memory: _buildMemory(root || node, node.id) });
+      steps.push?.({ description: `Caso LR em ${node.value}: rotacao esquerda no filho, depois direita.`, snapshot: _snapshot(sr, [node.id, node.left.id], 'warning'), memory: _buildMemory(sr, node.id) });
       node.left = _rotateLeft(node.left);
       return _rotateRight(node);
     }
     if (b < -1 && value < node.right.value) {
-      steps.push?.({ description: `Caso RL em ${node.value}: rotacao direita no filho, depois esquerda.`, snapshot: _snapshot(root || node, [node.id, node.right.id], 'warning'), memory: _buildMemory(root || node, node.id) });
+      steps.push?.({ description: `Caso RL em ${node.value}: rotacao direita no filho, depois esquerda.`, snapshot: _snapshot(sr, [node.id, node.right.id], 'warning'), memory: _buildMemory(sr, node.id) });
       node.right = _rotateRight(node.right);
       return _rotateLeft(node);
     }
@@ -168,33 +169,42 @@ function initStructurePage() {
   function _remove(value) {
     const tree = _clone(root);
     const steps = [{ description: `Remover ${value}: apos a remocao, alturas e rotacoes sao recalculadas.`, snapshot: _snapshot(tree), memory: _buildMemory(tree, null) }];
-    const result = _deleteAvl(tree, value, steps);
+    const result = _deleteAvl(tree, value, steps, tree);
     steps.push({ description: `Remocao finalizada com rebalanceamento AVL.`, snapshot: _snapshot(result), memory: _buildMemory(result, null) });
     return { steps, root: result };
   }
 
-  function _deleteAvl(node, value, steps) {
+  function _deleteAvl(node, value, steps, snapRoot) {
+    const sr = snapRoot !== undefined ? snapRoot : (root || node);
     if (!node) return null;
-    steps.push({ description: `Comparando ${value} com ${node.value}.`, snapshot: _snapshot(root || node, [node.id], 'visiting'), memory: _buildMemory(root || node, node.id) });
-    if (value < node.value) node.left = _deleteAvl(node.left, value, steps);
-    else if (value > node.value) node.right = _deleteAvl(node.right, value, steps);
+    steps.push({ description: `Comparando ${value} com ${node.value}.`, snapshot: _snapshot(sr, [node.id], 'visiting'), memory: _buildMemory(sr, node.id) });
+    if (value < node.value) node.left = _deleteAvl(node.left, value, steps, sr);
+    else if (value > node.value) node.right = _deleteAvl(node.right, value, steps, sr);
     else {
-      steps.push({ description: `No ${node.value} encontrado para remocao.`, snapshot: _snapshot(root || node, [node.id], 'danger'), memory: _buildMemory(root || node, node.id) });
+      steps.push({ description: `No ${node.value} encontrado para remocao.`, snapshot: _snapshot(sr, [node.id], 'danger'), memory: _buildMemory(sr, node.id) });
       if (!node.left || !node.right) return node.left || node.right;
       const successor = _minNode(node.right);
       node.value = successor.value;
-      node.right = _deleteAvl(node.right, successor.value, steps);
+      node.right = _deleteAvl(node.right, successor.value, steps, sr);
     }
 
     _update(node);
     const b = _balance(node);
-    if (b > 1 && _balance(node.left) >= 0) return _rotateRight(node);
+    if (b > 1 && _balance(node.left) >= 0) {
+      steps.push({ description: `Rebalanceando ${node.value} (b=${b}): rotacao direita.`, snapshot: _snapshot(sr, [node.id], 'warning'), memory: _buildMemory(sr, node.id) });
+      return _rotateRight(node);
+    }
     if (b > 1 && _balance(node.left) < 0) {
+      steps.push({ description: `Rebalanceando ${node.value} (b=${b}): rotacao esquerda no filho, depois direita.`, snapshot: _snapshot(sr, [node.id], 'warning'), memory: _buildMemory(sr, node.id) });
       node.left = _rotateLeft(node.left);
       return _rotateRight(node);
     }
-    if (b < -1 && _balance(node.right) <= 0) return _rotateLeft(node);
+    if (b < -1 && _balance(node.right) <= 0) {
+      steps.push({ description: `Rebalanceando ${node.value} (b=${b}): rotacao esquerda.`, snapshot: _snapshot(sr, [node.id], 'warning'), memory: _buildMemory(sr, node.id) });
+      return _rotateLeft(node);
+    }
     if (b < -1 && _balance(node.right) > 0) {
+      steps.push({ description: `Rebalanceando ${node.value} (b=${b}): rotacao direita no filho, depois esquerda.`, snapshot: _snapshot(sr, [node.id], 'warning'), memory: _buildMemory(sr, node.id) });
       node.right = _rotateRight(node.right);
       return _rotateLeft(node);
     }
