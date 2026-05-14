@@ -98,6 +98,8 @@ const Renderer = (() => {
       drawArrows:    (snap, pos, nds) => _drawTreeArrows(pos, nds),
       typeLabel:     (i, node) => ({ text: node.meta || 'node*', x: NODE_W / 2, y: -22 }),
       showIndex:     false,
+      nodeRx:        NODE_H / 2,
+      nodeRy:        NODE_H / 2,
       pointerResolver: (snapshot, nodes) => ([
         nodes[0] ? { name: snapshot.rootLabel || 'root', targetId: nodes[0].id } : null,
       ].filter(Boolean)),
@@ -237,7 +239,8 @@ const Renderer = (() => {
       x: 0, y: 0,
       width: NODE_W, height: NODE_H,
       class: 'node-rect ' + _stateClass(node.state),
-      rx: 6, ry: 6,
+      rx: strategy.nodeRx || 6,
+      ry: strategy.nodeRy || 6,
     });
 
     // Value text — styled as a numeric literal (warm orange, like editors)

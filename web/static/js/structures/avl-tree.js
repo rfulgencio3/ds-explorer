@@ -250,7 +250,7 @@ function initStructurePage() {
     }
     walk(tree, 0, null);
     nodes.sort((a, b) => a.depth - b.depth || a.order - b.order);
-    return { type: 'tree', nodes, rootLabel: 'root' };
+    return { type: 'tree', nodes, rootLabel: tree ? `root  h=${tree.height}` : 'root' };
   }
 
   function _flatten(tree) {

@@ -1,0 +1,40 @@
+{
+  "id": "red-black-tree",
+  "name": "Arvore Rubro-Negra",
+  "category": "Arvore",
+  "description": "A Arvore Rubro-Negra e uma BST auto-balanceada onde cada no e colorido de VERMELHO ou PRETO. Cinco propriedades garantem que a arvore permaneca aproximadamente balanceada: (1) todo no e vermelho ou preto; (2) a raiz e preta; (3) todo NIL e preto; (4) filhos de um no vermelho sao pretos; (5) todo caminho de um no ate seus NIL descendentes contem o mesmo numero de nos pretos (altura-preta). Apos insercoes e remocoes, rotacoes e recoloracoes restauram essas propriedades em O(log n).",
+  "complexity": {
+    "access":       { "best": "O(1)",     "average": "O(log n)", "worst": "O(log n)" },
+    "search":       { "best": "O(1)",     "average": "O(log n)", "worst": "O(log n)" },
+    "insertBegin":  { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "insertEnd":    { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "delete":       { "best": "O(log n)", "average": "O(log n)", "worst": "O(log n)" },
+    "space":        "O(n)"
+  },
+  "useCases": {
+    "recommended": [
+      "Cargas mistas de insercao, remocao e busca frequentes",
+      "Quando O(log n) garantido no pior caso e essencial",
+      "Implementacoes de mapas e conjuntos ordenados em linguagens padrao",
+      "Gerenciamento de memoria no kernel Linux (red-black tree nativo)"
+    ],
+    "notRecommended": [
+      "Quando busca e dominante e insercao rara (AVL e mais rapida em buscas)",
+      "Quando hash table resolve por chave exata em O(1)",
+      "Quando a implementacao precisa ser simples e direta"
+    ],
+    "realWorldExamples": [
+      "std::map e std::set em C++ (libstdc++)",
+      "TreeMap e TreeSet em Java",
+      "SortedDictionary<K,V> em .NET",
+      "Escalonador CFS do kernel Linux",
+      "Gerenciamento de memoria virtual em sistemas operacionais"
+    ]
+  },
+  "codeSnippets": {
+    "csharp": "// .NET usa Red-Black Tree internamente no SortedSet<T>\nvar set = new SortedSet<int>();\nset.Add(10); set.Add(5); set.Add(20);\n// Acesso O(log n) garantido — a RB tree balanceia automaticamente.\nConsole.WriteLine(set.Min); // 5\nConsole.WriteLine(set.Max); // 20",
+    "go": "// Go nao expoe RB tree diretamente; use sort.Search para busca binaria.\n// Implementacao manual:\ntype Color bool\nconst (RED Color = true; BLACK Color = false)\ntype Node struct {\n    Value       int\n    Color       Color\n    Left, Right *Node\n    Parent      *Node\n}",
+    "python": "# Python nao tem RB tree nativa; sortedcontainers usa Skip List.\nfrom sortedcontainers import SortedList\nsl = SortedList([10, 5, 20])\nsl.add(15)  # O(log n)\nprint(sl)   # [5, 10, 15, 20]\n# Para RB tree pura: pip install rbtree",
+    "javascript": "// Nao ha RB tree nativa em JS; Map/Set nao sao ordenados.\n// Implementacao manual simplificada:\nclass RBNode {\n  constructor(value) {\n    this.value = value;\n    this.color = 'RED';\n    this.left = this.right = this.parent = null;\n  }\n}"
+  }
+}
